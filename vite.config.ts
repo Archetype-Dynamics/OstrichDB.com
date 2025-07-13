@@ -1,13 +1,13 @@
 /**
 * =================================================
-* #Author: Kasi Reeves
+* Author: Kasi Reeves
 * GitHub: @Kasirocswell  
-* #Contributors: 
+* Contributors: 
 *           @SchoolyB
 * 
 * License: Apache License 2.0 (see LICENSE file for details)
 * Copyright (c) 2025-Present Archetype Dynamics, Inc.
-* #File Description:
+* File Description:
 *    Vite configuration file for build settings and plugins.
 * =================================================
 **/

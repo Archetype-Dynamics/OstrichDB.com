@@ -1,16 +1,16 @@
 /**
-* =================================================
-* #Author: Kasi Reeves
-* GitHub: @Kasirocswell  
-* #Contributors: 
-*           @SchoolyB
-* 
-* License: Apache License 2.0 (see LICENSE file for details)
-* Copyright (c) 2025-Present Archetype Dynamics, Inc.
-* #File Description:
-*    Contains navigation link data for the site's navbar.
-* =================================================
-**/
+ * =================================================
+ * Author: Kasi Reeves
+ * GitHub: @Kasirocswell
+ * Contributors:
+ *           @SchoolyB
+ *           @GaleSSalazar
+ * License: Apache License 2.0 (see LICENSE file for details)
+ * Copyright (c) 2025-Present Archetype Dynamics, Inc.
+ * File Description:
+ *    Contains navigation link data for the site's navbar.
+ * =================================================
+ **/
 
 import { NavLink } from "../types";
 
@@ -23,29 +23,19 @@ export const navLinks: NavLink[] = [
       {
         label: "Database",
         href: "#database",
-        description: "Postgres database with realtime capabilities"
+        description: "Custom built NoSQL/NoJSON database built in Odin",
       },
       {
-        label: "Auth",
-        href: "#auth",
-        description: "User management and authentication"
+        label: "Query Interfaces",
+        href: "#queries",
+        description: "Natural Language Queries, Manual Editor, Visual Tools",
       },
       {
-        label: "Storage",
-        href: "#storage",
-        description: "Store and serve large files"
+        label: "API & Integration",
+        href: "#api",
+        description: "RESTful API access and integration tools",
       },
-      {
-        label: "Edge Functions",
-        href: "#functions",
-        description: "Server-side code at the edge"
-      },
-      {
-        label: "Realtime",
-        href: "#realtime",
-        description: "Build multiplayer experiences"
-      }
-    ]
+    ],
   },
   {
     label: "Developers",
@@ -55,30 +45,18 @@ export const navLinks: NavLink[] = [
       {
         label: "Documentation",
         href: "#docs",
-        description: "Guides and references"
+        description: "Guides and references",
       },
       {
         label: "API",
         href: "#api",
-        description: "API references and examples"
+        description: "API references and examples",
       },
       {
         label: "Resources",
         href: "#resources",
-        description: "Tools and SDKs"
+        description: "Tools and SDKs",
       },
-    ]
+    ],
   },
-  {
-    label: "Pricing",
-    href: "#pricing"
-  },
-  {
-    label: "Blog",
-    href: "#blog"
-  },
-  {
-    label: "Careers",
-    href: "#careers"
-  }
 ];

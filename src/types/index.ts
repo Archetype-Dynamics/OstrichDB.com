@@ -1,13 +1,13 @@
 /**
 * =================================================
-* #Author: Kasi Reeves
+* Author: Kasi Reeves
 * GitHub: @Kasirocswell  
-* #Contributors: 
+* Contributors: 
 *           @SchoolyB
 * 
 * License: Apache License 2.0 (see LICENSE file for details)
 * Copyright (c) 2025-Present Archetype Dynamics, Inc.
-* #File Description:
+* File Description:
 *    Contains TypeScript interface definitions used throughout the application.
 * =================================================
 **/
@@ -19,14 +19,6 @@ export interface Product {
   icon: string;
 }
 
-export interface Testimonial {
-  id: string;
-  quote: string;
-  author: string;
-  role: string;
-  company: string;
-  logoUrl: string;
-}
 
 export interface PricingTier {
   name: string;

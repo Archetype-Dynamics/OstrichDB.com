@@ -1,14 +1,15 @@
 /**
 * =================================================
-* #Author: Kasi Reeves
+* Author: Kasi Reeves
 * GitHub: @Kasirocswell  
-* #Contributors: 
+* Contributors: 
 *           @SchoolyB
+            @GaleSSalazar
 * 
 * License: Apache License 2.0 (see LICENSE file for details)
 * Copyright (c) 2025-Present Archetype Dynamics, Inc.
-* #File Description:
-*    Contains global CSS styles, theme variables, and utility classes.
+* File Description:
+*    Contains global CSS styles, theme variables, utility classes, and scroll animations.
 * =================================================
 **/
 
@@ -18,22 +19,33 @@
 
 :root {
   --bg-primary: #121820;
-  --bg-secondary: #1E2A38;
-  --text-primary: #EAE3D1; /* Changed to cream for dark mode */
-  --text-secondary: #EAE3D1; /* Changed to cream for dark mode */
-  --border-color: #2D3748;
-  --logo-primary: #EAE3D1;  /* Cream color for "Ostrich" in dark mode */
-  --logo-secondary: #E08A2C; /* Amber color for "DB" in dark mode - unchanged */
+  --bg-secondary: #1e2a38;
+  --text-primary: #eae3d1;
+  /* Changed to cream for dark mode */
+  --text-secondary: #eae3d1;
+  /* Changed to cream for dark mode */
+  --border-color: #2d3748;
+  --logo-primary: #eae3d1;
+  /* Cream color for "Ostrich" in dark mode */
+  --logo-secondary: #e08a2c;
+  /* Amber color for "DB" in dark mode - unchanged */
 }
 
-[data-theme='light'] {
-  --bg-primary: #F5F1E8;  /* Cream/off-white background color */
-  --bg-secondary: #EAE3D1; /* Slightly darker cream for secondary backgrounds */
-  --text-primary: #121820; /* Dark blue text for light mode */
-  --text-secondary: #121820; /* Dark blue text for light mode */
-  --border-color: #D6CFC2; /* Cream-toned border color */
-  --logo-primary: #121820;  /* Dark blue color for "Ostrich" in light mode */
-  --logo-secondary: #E08A2C; /* Amber color for "DB" in light mode - unchanged */
+[data-theme="light"] {
+  --bg-primary: #f5f1e8;
+  /* Cream/off-white background color */
+  --bg-secondary: #eae3d1;
+  /* Slightly darker cream for secondary backgrounds */
+  --text-primary: #121820;
+  /* Dark blue text for light mode */
+  --text-secondary: #121820;
+  /* Dark blue text for light mode */
+  --border-color: #d6cfc2;
+  /* Cream-toned border color */
+  --logo-primary: #121820;
+  /* Dark blue color for "Ostrich" in light mode */
+  --logo-secondary: #e08a2c;
+  /* Amber color for "DB" in light mode - unchanged */
 }
 
 body {
@@ -47,56 +59,180 @@ body {
   .container {
     @apply px-4 md:px-6 mx-auto max-w-7xl;
   }
-  
+
   .btn {
     @apply px-4 py-2 rounded-md font-medium transition-all duration-200 inline-flex items-center justify-center;
   }
-  
+
   .btn-primary {
     @apply bg-sb-amber hover:bg-sb-amber-dark text-white;
   }
-  
+
   .btn-secondary {
     @apply bg-sb-dark-accent hover:bg-gray-700 text-white;
   }
-  
+
   .btn-outline {
-    @apply border border-gray-700 hover:bg-sb-dark-accent text-white;
+    @apply border border-gray-700 bg-sb-dark-accent hover:bg-gray-700 text-white;
     border-color: var(--border-color);
   }
-  
+
   .gradient-text {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-sb-dark to-sb-amber;
+    @apply bg-clip-text text-sb-amber;
   }
-  
+
   .code-block {
     @apply rounded-lg p-4 font-mono text-sm overflow-auto;
     background-color: var(--bg-secondary);
   }
-  
+
   /* Logo styling based on theme */
   .logo-text-primary {
     color: var(--logo-primary);
   }
-  
+
   .logo-text-secondary {
     color: var(--logo-secondary);
+  }
+
+  /* Animation delay utilities */
+  .delay-100 {
+    animation-delay: 100ms;
+  }
+
+  .delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .delay-300 {
+    animation-delay: 300ms;
+  }
+
+  .delay-400 {
+    animation-delay: 400ms;
+  }
+
+  .delay-500 {
+    animation-delay: 500ms;
+  }
+
+  .delay-600 {
+    animation-delay: 600ms;
+  }
+
+  .delay-700 {
+    animation-delay: 700ms;
+  }
+
+  .delay-800 {
+    animation-delay: 800ms;
+  }
+
+  .delay-900 {
+    animation-delay: 900ms;
+  }
+
+  .delay-1000 {
+    animation-delay: 1000ms;
   }
 }
 
 /* Custom gradients */
 .hero-gradient {
-  background: radial-gradient(circle at 50% -20%, rgba(234, 227, 209, 0.15), transparent 70%);
+  background: radial-gradient(circle at 50% -20%,
+      rgba(234, 227, 209, 0.15),
+      transparent 70%);
 }
 
 .bg-grid {
-  background-image: 
-    linear-gradient(to right, var(--border-color) 1px, transparent 1px),
+  background-image: linear-gradient(to right,
+      var(--border-color) 1px,
+      transparent 1px),
     linear-gradient(to bottom, var(--border-color) 1px, transparent 1px);
   background-size: 20px 20px;
 }
 
+/* Scroll-triggered animations */
+@keyframes fadeUpAnimation {
+  from {
+    opacity: 0;
+    transform: translateY(2rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeUpScaleAnimation {
+  from {
+    opacity: 0;
+    transform: translateY(2rem) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideLeftAnimation {
+  from {
+    opacity: 0;
+    transform: translateX(-3rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideRightAnimation {
+  from {
+    opacity: 0;
+    transform: translateX(3rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes staggeredAnimation {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Smooth scrolling for anchor links */
+html {
+  scroll-behavior: smooth;
+}
+
 /* Theme transition */
 * {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

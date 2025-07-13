@@ -1,43 +1,90 @@
-/**
-* =================================================
-* #Author: Kasi Reeves
-* GitHub: @Kasirocswell  
-* #Contributors: 
-*           @SchoolyB
-* 
-* License: Apache License 2.0 (see LICENSE file for details)
-* Copyright (c) 2025-Present Archetype Dynamics, Inc.
-* #File Description:
-*    Contains the CTA (Call to Action) component for user conversion.
-* =================================================
-**/
+// /**
+//  * =================================================
+//  * Author: Kasi Reeves
+//  * GitHub: @Kasirocswell
+//  * Contributors:
+//  *           @SchoolyB
+//  *           @GaleSSalazar
+//  *
+//  * License: Apache License 2.0 (see LICENSE file for details)
+//  * Copyright (c) 2025-Present Archetype Dynamics, Inc.
+//  * File Description:
+//  *    Contains the CTA component with fade up + scale animation.
+//  * =================================================
+//  **/
 
-import React from 'react';
-import { ArrowRight } from 'lucide-react';
+
+import React from "react";
+import { ArrowRight } from "lucide-react";
+import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
+import { RegisterLink } from "@kinde-oss/kinde-auth-react/components";
+import { useNavigate } from "react-router-dom";
+import { useScrollAnimation, getAnimationClasses } from "../../utils/hooks/useScrollAnimation";
 
 const CTA: React.FC = () => {
+  const { elementRef, isVisible } = useScrollAnimation({
+    threshold: 0.2,
+    rootMargin: '0px 0px -50px 0px'
+  });
+
+  const { isAuthenticated, isLoading } = useKindeAuth();
+  const navigate = useNavigate();
+
+  const handleGetStarted = () => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+//If not authenticated, the RegisterLink component will handle the redirection
+  };
+
   return (
-    <section className="py-24 bg-sb-dark relative overflow-hidden">
-      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-sb-amber/50 to-transparent"></div>
-      <div className="absolute -top-40 -left-40 w-80 h-80 bg-sb-cream/10 rounded-full blur-3xl"></div>
-      <div className="absolute -bottom-40 -right-40 w-80 h-80 bg-sb-amber/10 rounded-full blur-3xl"></div>
-      
+    <section 
+      ref={elementRef} // Dev Note: If your IDE is screaming about this line, dont worry about it, leave as is - Marshall
+      className="py-16 md:py-20 lg:py-24 xl:py-28 relative overflow-hidden">
+
       <div className="container relative">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight" style={{ color: 'var(--text-primary)' }}>
-            Start building with <span className="gradient-text">OstrichDB</span> today
+          <h2 
+            className={`text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight ${
+              getAnimationClasses(isVisible, 'fadeUpScale', 0)
+            }`}
+            style={{ color: "var(--text-primary)" }}
+          >
+            Ready to Build Something 
+            <span className="text-sb-amber"> Amazing?</span>
           </h2>
-          <p className="text-xl mb-10" style={{ color: 'var(--text-primary)' }}>
-            Join thousands of developers and teams using OstrichDB to build their applications faster and more securely.
+          
+          <p 
+            className={`text-lg md:text-xl mb-8 leading-relaxed ${
+              getAnimationClasses(isVisible, 'fadeUpScale', 100)
+            }`}
+            style={{ color: "var(--text-primary)" }}
+          >
+            Start your free project today!
           </p>
           
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <a href="#" className="btn btn-primary py-3 px-8 text-base">
-              Start your project
-            </a>
+          <div className={`flex flex-col sm:flex-row justify-center gap-4 ${
+            getAnimationClasses(isVisible, 'fadeUpScale', 200)
+          }`}>
+            {isAuthenticated ? (
+              <button 
+                onClick={handleGetStarted}
+                disabled={isLoading}
+                className="btn btn-primary py-3 px-8 text-base disabled:opacity-50"
+              >
+                {isLoading ? 'Loading...' : 'Get Started Now'}
+              </button>
+            ) : (
+              <RegisterLink className="btn btn-primary py-3 px-8 text-base">
+                Get Started Now
+              </RegisterLink>
+            )}
             <a href="#" className="btn btn-outline py-3 px-8 text-base group">
-              <span>Documentation</span>
-              <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
+              <span>Talk to Sales</span>
+              <ArrowRight
+                size={16}
+                className="ml-2 group-hover:translate-x-1 transition-transform"
+              />
             </a>
           </div>
         </div>

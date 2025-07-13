@@ -1,16 +1,16 @@
 /**
-* =================================================
-* #Author: Kasi Reeves
-* GitHub: @Kasirocswell  
-* #Contributors: 
-*           @SchoolyB
-* 
-* License: Apache License 2.0 (see LICENSE file for details)
-* Copyright (c) 2025-Present Archetype Dynamics, Inc.
-* #File Description:
-*    Contains pricing tier data for subscription plans.
-* =================================================
-**/
+ * =================================================
+ * Author: Kasi Reeves
+ * GitHub: @Kasirocswell
+ * Contributors:
+ *           @SchoolyB
+ *
+ * License: Apache License 2.0 (see LICENSE file for details)
+ * Copyright (c) 2025-Present Archetype Dynamics, Inc.
+ * File Description:
+ *    Contains pricing tier data for subscription plans.
+ * =================================================
+ **/
 
 import { PricingTier } from "../types";
 
@@ -25,9 +25,9 @@ export const pricingTiers: PricingTier[] = [
       "2GB bandwidth",
       "Social OAuth providers",
       "1-day log retention",
-      "Community support"
+      "Community support",
     ],
-    cta: "Start for free"
+    cta: "Start for free",
   },
   {
     name: "Pro",
@@ -39,10 +39,10 @@ export const pricingTiers: PricingTier[] = [
       "50GB bandwidth",
       "Daily backups",
       "14-day log retention",
-      "Email support"
+      "Email support",
     ],
     cta: "Get started",
-    highlighted: true
+    highlighted: true,
   },
   {
     name: "Team",
@@ -54,8 +54,8 @@ export const pricingTiers: PricingTier[] = [
       "500GB bandwidth",
       "Point-in-time recovery",
       "28-day log retention",
-      "Priority support"
+      "Priority support",
     ],
-    cta: "Contact sales"
-  }
+    cta: "Contact sales",
+  },
 ];

@@ -37,3 +37,7 @@ lerna-debug.log*
 
 # Testing
 coverage
+
+#This is only for development purposes such as buttons that bypass authentication or create data structures to test API calls
+# and should NEVER be used in production.
+*dev-admin/ 
