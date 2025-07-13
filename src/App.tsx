@@ -145,6 +145,18 @@ function App() {
         <ThemeProvider>
           <Router>
             <Routes>
+              {/* Kinde Auth Callback */}
+              <Route 
+                path="/api/auth/kinde_callback" 
+                element={
+                  <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg-primary)" }}>
+                    <div className="animate-pulse">
+                      <div className="h-8 w-32 bg-sb-purple/30 rounded-md"></div>
+                    </div>
+                  </div>
+                } 
+              />
+
               {/* Contributors Page - MOVED INSIDE Routes */}
               <Route 
                 path="/contributors" 
