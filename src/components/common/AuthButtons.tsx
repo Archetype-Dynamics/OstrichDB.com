@@ -21,6 +21,7 @@ import {
 } from "@kinde-oss/kinde-auth-react/components";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
 import UserProfile from "./UserProfile";
+import { API_BASE_URL } from "../../config/api";
 
 interface AuthButtonsProps {
   showAvatar?: boolean;
@@ -58,7 +59,7 @@ const AuthButtons: React.FC<AuthButtonsProps> = ({
       }
       
       //This should be fine here since once authenticated, the user will be redirected to their Project Dashboard page, if not then will re-work this
-      const response = await fetch('http://localhost:8042/api/v1/projects', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/projects`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,

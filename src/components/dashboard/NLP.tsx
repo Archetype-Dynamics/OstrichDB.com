@@ -16,6 +16,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Send, MessageSquare, CheckCircle, AlertTriangle, Loader2, X, Lightbulb, ArrowLeft, HelpCircle, Eye, Code } from 'lucide-react';
 import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../../config/api';
 
 // Greeting configurations
 const GREETINGS = [
@@ -146,7 +147,7 @@ const NLPInterface = () => {
 
       const encodedPrompt = encodeURIComponent(prompt);
       
-      const response = await fetch(`http://localhost:8042/api/v1/projects/${projectName}/nlp/chat?value=${encodedPrompt}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/projects/${projectName}/nlp/chat?value=${encodedPrompt}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -213,7 +214,7 @@ const NLPInterface = () => {
       setShowConfirmationMessage(true);
       setShowConfirmation(false); // Hide the confirmation dialog
   
-      const response = await fetch(`http://localhost:8042/api/v1/projects/${projectName}/nlp/finalize`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/projects/${projectName}/nlp/finalize`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

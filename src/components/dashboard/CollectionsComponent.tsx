@@ -14,6 +14,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
+import { API_BASE_URL } from '../../config/api';
 import { ArrowLeft, Database, Plus, Filter, ChevronDown } from 'lucide-react';
 
 interface Collection {
@@ -174,7 +175,7 @@ const CollectionsComponent: React.FC = () => {
         throw new Error('No authentication token available');
       }
 
-      const response = await fetch(`http://localhost:8042/api/v1/projects/${encodeURIComponent(projectName!)}/collections`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/projects/${encodeURIComponent(projectName!)}/collections`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -280,7 +281,7 @@ const CollectionsComponent: React.FC = () => {
         throw new Error('No authentication token available');
       }
 
-      const response = await fetch(`http://localhost:8042/api/v1/projects/${encodeURIComponent(projectName!)}/collections/${encodeURIComponent(collectionData.name)}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/projects/${encodeURIComponent(projectName!)}/collections/${encodeURIComponent(collectionData.name)}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -16,6 +16,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
+import { API_BASE_URL } from '../../config/api';
 import { 
   ArrowLeft,
   RefreshCw,
@@ -100,7 +101,7 @@ const CollectionOverview: React.FC = () => {
       setError(null);
   
       // Fetch collection data
-      const collectionResponse = await fetch(`http://localhost:8042/api/v1/projects/${encodeURIComponent(projectName!)}/collections/${encodeURIComponent(collectionName!)}`, {
+      const collectionResponse = await fetch(`${API_BASE_URL}/api/v1/projects/${encodeURIComponent(projectName!)}/collections/${encodeURIComponent(collectionName!)}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -139,7 +140,7 @@ const CollectionOverview: React.FC = () => {
       setCollectionData(collectionData);
   
       // Fetch clusters data
-      const clustersResponse = await fetch(`http://localhost:8042/api/v1/projects/${encodeURIComponent(projectName!)}/collections/${encodeURIComponent(collectionName!)}/clusters`, {
+      const clustersResponse = await fetch(`${API_BASE_URL}/api/v1/projects/${encodeURIComponent(projectName!)}/collections/${encodeURIComponent(collectionName!)}/clusters`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,

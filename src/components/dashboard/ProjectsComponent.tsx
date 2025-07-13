@@ -16,6 +16,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
+import { API_BASE_URL } from '../../config/api';
 import { Filter, ChevronDown, FolderOpen } from 'lucide-react';
 
 interface Project {
@@ -151,7 +152,7 @@ const ProjectsComponent: React.FC = () => {
     try {
       // Fetch collections for this project
       const collectionsResponse = await fetch(
-        `http://localhost:8042/api/v1/projects/${encodeURIComponent(projectName)}/collections`,
+        `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(projectName)}/collections`,
         {
           method: 'GET',
           headers: {
@@ -239,7 +240,7 @@ const ProjectsComponent: React.FC = () => {
       }
 
       // Get list of all projects
-      const response = await fetch('http://localhost:8042/api/v1/projects', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/projects`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -324,7 +325,7 @@ const ProjectsComponent: React.FC = () => {
         throw new Error('No authentication token available');
       }
 
-      const response = await fetch(`http://localhost:8042/api/v1/projects/${encodeURIComponent(projectData.name)}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/projects/${encodeURIComponent(projectData.name)}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

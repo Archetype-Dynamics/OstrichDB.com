@@ -15,6 +15,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
+import { API_BASE_URL } from "../../config/api";
 import {
   Plus,
   Trash2,
@@ -228,7 +229,7 @@ const ClusterEditor: React.FC = () => {
       setError(null);
   
       const clusters = await fetch(
-        `http://localhost:8042/api/v1/projects/${encodeURIComponent(
+        `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(
           projectName!
         )}/collections/${encodeURIComponent(collectionName!)}/clusters`,
         {
@@ -278,7 +279,7 @@ const ClusterEditor: React.FC = () => {
       // First, fetch the cluster metadata from the clusters list
 
       const clustersResponse = await fetch(
-        `http://localhost:8042/api/v1/projects/${encodeURIComponent(
+        `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(
           projectName!
         )}/collections/${encodeURIComponent(collectionName!)}/clusters`,
         {
@@ -316,7 +317,7 @@ const ClusterEditor: React.FC = () => {
 
       // Then fetch all the records for the selected cluster
       const response = await fetch(
-        `http://localhost:8042/api/v1/projects/${encodeURIComponent(
+        `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(
           projectName!
         )}/collections/${encodeURIComponent(
           collectionName!
@@ -1028,7 +1029,7 @@ const ClusterEditor: React.FC = () => {
 
       //First create the Cluster
       const clusterCreationResponse = await fetch(
-        `http://localhost:8042/api/v1/projects/${encodeURIComponent(
+        `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(
           projectName!
         )}/collections/${encodeURIComponent(
           collectionName!
@@ -1052,7 +1053,7 @@ const ClusterEditor: React.FC = () => {
       //Now for each record, send a POST request to add it to the Cluster
       for (const record of payload.records) {
         const recordCreationResponse = await fetch(
-          `http://localhost:8042/api/v1/projects/${encodeURIComponent(
+          `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(
             projectName!
           )}/collections/${encodeURIComponent(
             collectionName!
@@ -1252,7 +1253,7 @@ const ClusterEditor: React.FC = () => {
           // For new records, send a POST request
           const token = await getToken();
           await fetch(
-            `http://localhost:8042/api/v1/projects/${encodeURIComponent(
+            `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(
               projectName!
             )}/collections/${encodeURIComponent(
               collectionName!
