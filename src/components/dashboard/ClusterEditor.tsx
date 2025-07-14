@@ -1025,9 +1025,8 @@ const ClusterEditor: React.FC = () => {
         })),
       };
 
-      //OstrichDB POST request DO NOT send back JSON. All that needs to happen is adding the cluster name and or record name, type, and value to the URL.
 
-      //First create the Cluster
+      // STEP 1: First create the Cluster (MUST complete before any record operations)
       const clusterCreationResponse = await fetch(
         `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(
           projectName!
@@ -1044,39 +1043,51 @@ const ClusterEditor: React.FC = () => {
         }
       );
 
+      // Ensure cluster creation succeeded before proceeding
       if (!clusterCreationResponse.ok) {
+        const errorText = await clusterCreationResponse.text();
         setSaveStatus("error");
-        setError("Failed to create cluster.");
+        setError(`Failed to create cluster: ${errorText || clusterCreationResponse.statusText}`);
         return;
       }
 
-      //Now for each record, send a POST request to add it to the Cluster
-      for (const record of payload.records) {
-        const recordCreationResponse = await fetch(
-          `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(
-            projectName!
-          )}/collections/${encodeURIComponent(
-            collectionName!
-          )}/clusters/${encodeURIComponent(
-            clusterInfo.name
-          )}/records/${encodeURIComponent(
-            record.name
-          )}?type=${encodeURIComponent(record.type)}&value=${encodeURIComponent(
-            record.value
-          )}`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-          }
-        );
+      // STEP 2: Only after cluster creation succeeds, add records sequentially
+      // Process records one by one to maintain order and handle errors properly
+      for (let i = 0; i < payload.records.length; i++) {
+        const record = payload.records[i];
+        
+        try {
+          const recordCreationResponse = await fetch(
+            `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(
+              projectName!
+            )}/collections/${encodeURIComponent(
+              collectionName!
+            )}/clusters/${encodeURIComponent(
+              clusterInfo.name
+            )}/records/${encodeURIComponent(
+              record.name
+            )}?type=${encodeURIComponent(record.type)}&value=${encodeURIComponent(
+              record.value
+            )}`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+            }
+          );
 
-        if (!recordCreationResponse.ok) {
+          if (!recordCreationResponse.ok) {
+            const errorText = await recordCreationResponse.text();
+            setSaveStatus("error");
+            setError(`Failed to add record "${record.name}" to cluster: ${errorText || recordCreationResponse.statusText}`);
+            return;
+          }
+        } catch (error) {
           setSaveStatus("error");
-          setError("Failed to add record to cluster.");
+          setError(`Network error while adding record "${record.name}": ${error instanceof Error ? error.message : 'Unknown error'}`);
           return;
         }
       }
