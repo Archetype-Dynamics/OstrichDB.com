@@ -96,7 +96,7 @@ const NLPInterface = () => {
   const { projectName } = useParams<{ projectName: string }>();
   const navigate = useNavigate();
   const [prompt, setPrompt] = useState('');
-  const [nlpResponse, setNlpResponse] = useState<NLPResponse | null>(null);
+  const [nlpResponse, setNlpResponse] = useState<NLPResponse[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -220,7 +220,8 @@ const NLPInterface = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(nlpResponse)
+        // needs to be an array for the finalize to work
+        body: JSON.stringify([nlpResponse])
       });
   
       if (!response.ok) {
