@@ -37,6 +37,7 @@ import  DashboardTopNavbarb from "./components/layout/DashboardTopNavbar";
 import { ThemeProvider } from "./context/ThemeContext";
 import NLPInterface from "./components/dashboard/NLP";
 import Contributors from "./pages/contributors";
+import PricingPage from "./pages/pricing";
 
 // Clerk authentication .env variables
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -137,7 +138,7 @@ function App() {
         <ThemeProvider>
           <Router>
             <Routes>
-              {/* Contributors Page - MOVED INSIDE Routes */}
+              {/* Contributors Page */}
               <Route 
                 path="/contributors" 
                 element={
@@ -148,6 +149,23 @@ function App() {
                     <Navbar />
                     <main className="flex-1">
                       <Contributors />
+                    </main>
+                    <Footer />
+                  </div>
+                } 
+              />
+
+              {/* Pricing Page */}
+              <Route 
+                path="/pricing" 
+                element={
+                  <div
+                    className="min-h-screen flex flex-col"
+                    style={{ backgroundColor: "var(--bg-primary)" }}
+                  >
+                    <Navbar />
+                    <main className="flex-1">
+                      <PricingPage />
                     </main>
                     <Footer />
                   </div>

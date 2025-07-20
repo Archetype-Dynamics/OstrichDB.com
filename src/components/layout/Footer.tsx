@@ -44,6 +44,13 @@ const Footer: React.FC = () => {
             >
               Contributors
             </a>
+            <a
+              href="/pricing"
+              style={{ color: "var(--text-secondary)" }}
+              className="hover:text-white text-sm transition-colors"
+            >
+              Pricing
+            </a>
           </div>
 
           {/* Center - Copyright */}

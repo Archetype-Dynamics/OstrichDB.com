@@ -32,7 +32,7 @@ const Pricing: React.FC = () => {
             Simple, predictable pricing
           </h2>
           <p className="text-lg" style={{ color: "var(--text-secondary)" }}>
-            Start for free, then scale as you grow. No credit card required.
+            Start for free, then scale as you grow.
           </p>
         </div>
 
@@ -138,16 +138,6 @@ const Pricing: React.FC = () => {
               </div>
             </div>
           ))}
-        </div>
-
-        <div className="mt-16 text-center">
-          <p style={{ color: "var(--text-secondary)" }} className="mb-4">
-            Need something more custom? Contact our sales team for Enterprise
-            pricing.
-          </p>
-          <a href="#" className="btn btn-outline py-3 px-8">
-            Contact Sales
-          </a>
         </div>
       </div>
     </section>
