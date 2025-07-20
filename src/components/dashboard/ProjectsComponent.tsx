@@ -17,7 +17,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import { API_BASE_URL } from '../../config/api';
-import { Filter, ChevronDown, FolderOpen, MoreVertical, Edit2, Trash2 } from 'lucide-react';
+import { Filter, ChevronDown, FolderOpen, MoreVertical, Edit2, Trash2, HelpCircle, Lightbulb, Target, BookOpen, Database } from 'lucide-react';
 
 interface Project {
   name: string;
@@ -65,6 +65,7 @@ const ProjectsComponent: React.FC = () => {
   const [isProjectOptionsModalOpen, setIsProjectOptionsModalOpen] = useState(false);
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [renameLoading, setRenameLoading] = useState(false);
@@ -525,9 +526,19 @@ const ProjectsComponent: React.FC = () => {
 
      {/* Header Section */}
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
-          {user?.firstName}'s Projects
-        </h1>
+        <div className="flex items-center justify-center gap-4 mb-2">
+          <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
+            {user?.firstName}'s Projects
+          </h1>
+          <button
+            onClick={() => setShowHelpModal(true)}
+            className="p-2 rounded-lg border-2 border-gray-400 hover:border-sb-amber transition-colors"
+            style={{ backgroundColor: 'var(--bg-primary)' }}
+            title="Help & Information about Projects"
+          >
+            <HelpCircle size={16} style={{ color: 'var(--text-secondary)' }} />
+          </button>
+        </div>
         {projects.length === 0 ? (
           <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
             Get started by creating your first project
@@ -1014,6 +1025,112 @@ const ProjectsComponent: React.FC = () => {
               </button>
             </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Help Modal */}
+      {showHelpModal && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowHelpModal(false)}
+        >
+          <div 
+            className="max-w-3xl w-full max-h-[90vh] overflow-y-auto rounded-lg border-2 p-6"
+            style={{ backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border-color, #374151)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                Projects Help & Information
+              </h2>
+              <button
+                onClick={() => setShowHelpModal(false)}
+                className="p-2 hover:bg-gray-200 hover:bg-opacity-20 rounded transition-colors"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {/* What are Projects */}
+              <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <Database size={20} className="text-sb-amber" />
+                  <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    What are Projects?
+                  </h3>
+                </div>
+                <p className="mb-3" style={{ color: 'var(--text-secondary)' }}>
+                  Projects are the top-level containers in OstrichDB that organize your data. Think of them as separate databases or workspaces where you can store related collections, clusters, and records.
+                </p>
+                <ul className="space-y-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  <li>• <strong>Isolation:</strong> Each project is completely isolated from others</li>
+                  <li>• <strong>Organization:</strong> Group related data and collections together</li>
+                  <li>• <strong>Access Control:</strong> Manage permissions and collaboration per project</li>
+                  <li>• <strong>Scalability:</strong> Create unlimited projects for different use cases</li>
+                </ul>
+              </div>
+
+              {/* Getting Started */}
+              <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <Lightbulb size={20} className="text-sb-amber" />
+                  <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    Getting Started
+                  </h3>
+                </div>
+                <ul className="space-y-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  <li>• <strong>Create a Project:</strong> Click the "+ Create New Project" button</li>
+                  <li>• <strong>Name Requirements:</strong> Use letters, numbers, underscores, or hyphens (max 32 chars)</li>
+                  <li>• <strong>Access Projects:</strong> Click on any project card to view its collections</li>
+                  <li>• <strong>Manage Projects:</strong> Use the three-dot menu for rename/delete options</li>
+                </ul>
+              </div>
+
+              {/* Best Practices */}
+              <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <Target size={20} className="text-sb-amber" />
+                  <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    Project Organization Tips
+                  </h3>
+                </div>
+                <ul className="space-y-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  <li>• <strong>Logical Separation:</strong> Create separate projects for different applications or environments</li>
+                  <li>• <strong>Naming Convention:</strong> Use descriptive names like "ecommerce-prod" or "analytics-dev"</li>
+                  <li>• <strong>Environment Separation:</strong> Keep development, staging, and production in separate projects</li>
+                  <li>• <strong>Team Organization:</strong> Create projects per team or department for better collaboration</li>
+                </ul>
+              </div>
+
+              {/* Common Use Cases */}
+              <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <BookOpen size={20} className="text-sb-amber" />
+                  <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    Common Project Use Cases
+                  </h3>
+                </div>
+                <ul className="space-y-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  <li>• <strong>Web Applications:</strong> Store user data, content, and application state</li>
+                  <li>• <strong>Analytics:</strong> Organize metrics, events, and reporting data</li>
+                  <li>• <strong>IoT Systems:</strong> Manage sensor data and device configurations</li>
+                  <li>• <strong>Content Management:</strong> Store articles, media metadata, and user-generated content</li>
+                  <li>• <strong>Development Testing:</strong> Create sandbox environments for testing features</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="flex justify-center mt-6">
+              <button
+                onClick={() => setShowHelpModal(false)}
+                className="px-6 py-2 bg-sb-amber hover:bg-sb-amber-dark text-white rounded-xl transition-all duration-200"
+              >
+                Got it!
+              </button>
+            </div>
           </div>
         </div>
       )}
