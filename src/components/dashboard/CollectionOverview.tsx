@@ -15,7 +15,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import { API_BASE_URL } from '../../config/api';
 import { 
   ArrowLeft,
@@ -63,7 +63,8 @@ const CollectionOverview: React.FC = () => {
   }>();
   
   const navigate = useNavigate();
-  const { getToken, user, isAuthenticated } = useKindeAuth();
+  const { getToken, isSignedIn } = useAuth();
+  const { user } = useUser();
 
   // Component state
   const [clusters, setClusters] = useState<Cluster[]>([]);
@@ -89,10 +90,10 @@ const CollectionOverview: React.FC = () => {
   };
 
   useEffect(() => {
-    if (isAuthenticated && user && projectName && collectionName) {
+    if (isSignedIn && user && projectName && collectionName) {
       fetchCollectionOverview();
     }
-  }, [isAuthenticated, user, projectName, collectionName]);
+  }, [isSignedIn, user, projectName, collectionName]);
  
   const fetchCollectionOverview = async () => {
     try {

@@ -13,7 +13,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import { API_BASE_URL } from '../../config/api';
 import { ArrowLeft, Database, Plus, Filter, ChevronDown } from 'lucide-react';
 
@@ -57,7 +57,8 @@ const formatDate = (dateString: string): string => {
 const CollectionsComponent: React.FC = () => {
   const navigate = useNavigate();
   const { projectName } = useParams<{ projectName: string }>();
-  const { getToken, user, isAuthenticated } = useKindeAuth();
+  const { getToken, isSignedIn } = useAuth();
+  const { user } = useUser();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [collections, setCollections] = useState<Collection[]>([]);
@@ -159,10 +160,10 @@ const CollectionsComponent: React.FC = () => {
   }, [collections, sortBy]);
 
   useEffect(() => {
-    if (isAuthenticated && user && projectName) {
+    if (isSignedIn && user && projectName) {
       fetchCollections();
     }
-  }, [isAuthenticated, user, projectName]);
+  }, [isSignedIn, user, projectName]);
 
   const fetchCollections = async () => {
 

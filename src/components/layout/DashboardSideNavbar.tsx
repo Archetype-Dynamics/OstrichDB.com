@@ -13,7 +13,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
-import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
+import { useAuth } from '@clerk/clerk-react';
 import {
   IconHome2,
   IconUser,
@@ -60,7 +60,7 @@ function ProjectStatusIndicator() {
 export function DashboardSideNavbar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useKindeAuth();
+  const { signOut } = useAuth();
   
 
   const { projectName, collectionName } = useParams<{
@@ -268,7 +268,7 @@ export function DashboardSideNavbar() {
   ));
 
   const handleLogout = () => {
-    logout();
+    signOut();
   };
 
   return (

@@ -14,7 +14,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
+import { useAuth, useUser } from "@clerk/clerk-react";
 import { API_BASE_URL } from "../../config/api";
 import {
   Plus,
@@ -79,7 +79,8 @@ const ClusterEditor: React.FC = () => {
   }>();
 
   const navigate = useNavigate();
-  const { getToken, user, isAuthenticated } = useKindeAuth();
+  const { getToken, isSignedIn } = useAuth();
+  const { user } = useUser();
 
   // Component state
   const [records, setRecords] = useState<Record[]>([]);
@@ -173,7 +174,6 @@ const ClusterEditor: React.FC = () => {
 
       setSaveStatus("saved");
     } catch (err) {
-      console.error("Auto-save failed:", err);
       setSaveStatus("error");
     }
   }, [records, isEditMode, saveStatus]);
@@ -192,7 +192,7 @@ const ClusterEditor: React.FC = () => {
   }, [records, autoSave]);
 
   useEffect(() => {
-    if (isAuthenticated && user && projectName && collectionName) {
+    if (isSignedIn && user && projectName && collectionName) {
       if (isSearchMode) {
         fetchAvailableClusters();
       } else if (!isNewCluster) {
@@ -213,7 +213,7 @@ const ClusterEditor: React.FC = () => {
       }
     }
   }, [
-    isAuthenticated,
+    isSignedIn,
     user,
     projectName,
     collectionName,
@@ -263,7 +263,6 @@ const ClusterEditor: React.FC = () => {
         Array.isArray(clustersData?.clusters) ? clustersData.clusters : []
       );
     } catch (err) {
-      console.error("Error fetching available clusters:", err);
       setError(err instanceof Error ? err.message : "Failed to fetch clusters");
       setAvailableClusters([]);
     } finally {
@@ -396,7 +395,6 @@ const ClusterEditor: React.FC = () => {
         });
       }
     } catch (err) {
-      console.error("Error fetching cluster data:", err);
       setError(
         err instanceof Error ? err.message : "Failed to fetch cluster data"
       );
@@ -518,17 +516,14 @@ const ClusterEditor: React.FC = () => {
   };
 
   const updateRecord = (id: string, field: keyof Record, value: string) => {
-    // console.log("updateRecord called with:", { id, field, value });
     setRecords((prevRecords) =>
       prevRecords.map((record) => {
         if (record.id === id) {
-          // console.log("Updating record:", { recordName: record.name, field, value, recordBefore: record });
           const updatedRecord = {
             ...record,
             [field]: value,
             isModified: !record.isNew,
           };
-          // console.log("Updated record:", updatedRecord);
 
           // Track which fields have been modified
           if (!record.isNew) {
@@ -1123,8 +1118,6 @@ const ClusterEditor: React.FC = () => {
         clusterName!
       )}/records/${encodeURIComponent(oldRecordName)}?rename=${encodeURIComponent(newRecordName)}`;
       
-      // console.log("PUT request URL for renaming record:", url);
-      // console.log("Old name:", oldRecordName, "New name:", newRecordName);
       
       const response = await fetch(url, {
         method: "PUT",
@@ -1145,13 +1138,11 @@ const ClusterEditor: React.FC = () => {
       }
 
       if (!response.ok) {
-        console.error("PUT request failed:", response.status, responseData);
         throw new Error(`Failed to rename record: ${response.status} ${typeof responseData === 'object' && responseData?.message || responseData || 'Unknown error'}`);
       }
 
       return true;
     } catch (err) {
-      console.error("Error renaming record:", err);
       throw err;
     }
   };
@@ -1168,8 +1159,6 @@ const ClusterEditor: React.FC = () => {
         clusterName!
       )}/records/${encodeURIComponent(recordName)}?type=${encodeURIComponent(newType)}`;
       
-      // console.log("PUT request URL for updating record type:", url);
-      // console.log("Record name:", recordName, "New type:", newType);
       
       const response = await fetch(url, {
         method: "PUT",
@@ -1190,13 +1179,11 @@ const ClusterEditor: React.FC = () => {
       }
 
       if (!response.ok) {
-        console.error("PUT request failed:", response.status, responseData);
         throw new Error(`Failed to update record type: ${response.status} ${typeof responseData === 'object' && responseData?.message || responseData || 'Unknown error'}`);
       }
 
       return true;
     } catch (err) {
-      console.error("Error updating record type:", err);
       throw err;
     }
   };
@@ -1217,9 +1204,6 @@ const ClusterEditor: React.FC = () => {
         clusterName!
       )}/records/${encodedRecordName}?value=${encodeURIComponent(newValue)}`;
       
-      // console.log("PUT request URL for updating record value:", url);
-      // console.log("Record name:", recordName, "Encoded record name:", encodedRecordName, "New value:", newValue);
-      // console.log("Is record name 'name'?", recordName === "name");
       
       const response = await fetch(url, {
         method: "PUT",
@@ -1239,17 +1223,13 @@ const ClusterEditor: React.FC = () => {
         responseData = responseText;
       }
 
-      // console.log("Response status:", response.status);
-      // console.log("Response data:", responseData);
 
       if (!response.ok) {
-        console.error("PUT request failed:", response.status, responseData);
         throw new Error(`Failed to update record value: ${response.status} ${typeof responseData === 'object' && responseData?.message || responseData || 'Unknown error'}`);
       }
 
       return true;
     } catch (err) {
-      console.error("Error updating record value:", err);
       throw err;
     }
   };

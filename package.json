@@ -15,7 +15,7 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
-    "@kinde-oss/kinde-auth-react": "^5.4.1",
+    "@clerk/clerk-react": "^5.35.3",
     "@mantine/core": "^8.0.2",
     "@mantine/hooks": "^8.0.2",
     "@tabler/icons-react": "^3.33.0",

@@ -14,8 +14,8 @@
 //  **/
 
 import { ArrowRight } from "lucide-react";
-import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
-import { RegisterLink } from "@kinde-oss/kinde-auth-react/components";
+import { useAuth } from "@clerk/clerk-react";
+import { SignUpButton } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import { useScrollAnimation, getAnimationClasses } from "../../utils/hooks/useScrollAnimation";
 
@@ -25,15 +25,15 @@ const Hero: React.FC = () => {
     rootMargin: '0px'
   });
 
-  const { isAuthenticated, isLoading } = useKindeAuth();
+  const { isSignedIn, isLoaded } = useAuth();
   const navigate = useNavigate();
 
   const handleStartBuilding = () => {
-    if (isAuthenticated) {
+    if (isSignedIn) {
       // Redirect authenticated users to projects page
       navigate('/dashboard');
     }
-    // For unauthenticated users, we'll use RegisterLink component instead
+    // For unauthenticated users, we'll use SignUpButton component instead
   };
 
   return (
@@ -65,18 +65,20 @@ const Hero: React.FC = () => {
           <div className={`flex flex-col sm:flex-row justify-center gap-4 ${
             getAnimationClasses(isVisible, 'fadeUpScale', 200)
           }`}>
-            {isAuthenticated ? (
+            {isSignedIn ? (
               <button 
                 onClick={handleStartBuilding}
-                disabled={isLoading}
+                disabled={!isLoaded}
                 className="btn btn-primary py-3 px-6 text-base disabled:opacity-50"
               >
-                {isLoading ? 'Loading...' : 'Start Building Free'}
+                {!isLoaded ? 'Loading...' : 'Start Building Free'}
               </button>
             ) : (
-              <RegisterLink className="btn btn-primary py-3 px-6 text-base">
-                Start Building Free
-              </RegisterLink>
+              <SignUpButton mode="modal">
+                <button className="btn btn-primary py-3 px-6 text-base">
+                  Start Building Free
+                </button>
+              </SignUpButton>
             )}
             <a href="#" className="btn btn-outline py-3 px-6 text-base group">
               <span>View Docs</span>

@@ -15,7 +15,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import { API_BASE_URL } from '../../config/api';
 import { Filter, ChevronDown, FolderOpen } from 'lucide-react';
 
@@ -45,11 +45,14 @@ interface Collection {
 type SortOption = 'alphabetical' | 'size' | 'dateModified' | 'collectionCount';
 
 const ProjectsComponent: React.FC = () => {
+  
   const navigate = useNavigate();
-  const { getToken, user, isAuthenticated } = useKindeAuth();
+  const { getToken, isSignedIn } = useAuth();
+  const { user } = useUser();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  
   const [error, setError] = useState<string | null>(null);
   const [createLoading, setCreateLoading] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('alphabetical');
@@ -143,10 +146,12 @@ const ProjectsComponent: React.FC = () => {
   }, [projects, sortBy]);
 
   useEffect(() => {
-    if (isAuthenticated && user) {
+    
+    if (isSignedIn && user) {
       fetchProjects();
+    } else {
     }
-  }, [isAuthenticated, user]);
+  }, [isSignedIn, user]);
 
   const fetchProjectMetadata = async (projectName: string, token: string) => {
     try {
@@ -164,7 +169,6 @@ const ProjectsComponent: React.FC = () => {
       );
 
       if (!collectionsResponse.ok) {
-        console.warn(`Failed to fetch collections for project ${projectName}`);
         return {
           collectionCount: 0,
           lastModified: 'Unknown',
@@ -211,7 +215,6 @@ const ProjectsComponent: React.FC = () => {
           });
         }
       } catch (parseError) {
-        console.warn(`Failed to parse collections for project ${projectName}`);
       }
 
       return {
@@ -221,7 +224,6 @@ const ProjectsComponent: React.FC = () => {
       };
 
     } catch (error) {
-      console.warn(`Error fetching metadata for project ${projectName}:`, error);
       return {
         collectionCount: 0,
         lastModified: 'Unknown',
@@ -275,12 +277,9 @@ const ProjectsComponent: React.FC = () => {
           setProjects([]);
         }
       } catch (parseError) {
-        console.error('JSON Parse Error:', parseError);
-        console.error('Failed to parse response:', data);
         setProjects([]);
       }
     } catch (err) {
-      console.error('Error fetching projects:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch projects');
     } finally {
       setLoading(false);
@@ -345,7 +344,6 @@ const ProjectsComponent: React.FC = () => {
       setProjectData({ name: '', collaborators: '', password: '' });
   
     } catch (err) {
-      console.error('Error creating project:', err);
       setError(err instanceof Error ? err.message : 'Failed to create project');
     } finally {
       setCreateLoading(false);
@@ -366,7 +364,7 @@ const ProjectsComponent: React.FC = () => {
       <div className="flex flex-col items-center justify-center mt-40">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-sb-amber"></div>
         <p className="mt-4 text-lg" style={{ color: 'var(--text-secondary)' }}>
-          Loading {user?.givenName}'s projects...
+          Loading {user?.firstName}'s projects...
         </p>
       </div>
     );
@@ -390,7 +388,7 @@ const ProjectsComponent: React.FC = () => {
      {/* Header Section */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
-          {user?.givenName}'s Projects
+          {user?.firstName}'s Projects
         </h1>
         {projects.length === 0 ? (
           <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>

@@ -13,34 +13,34 @@
  * =================================================
  **/
 
-import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
+import { useUser } from "@clerk/clerk-react";
 
 const UserProfile = () => {
-  const { user, isAuthenticated } = useKindeAuth();
+  const { user, isSignedIn } = useUser();
 
-  if (!isAuthenticated || !user) {
+  if (!isSignedIn || !user) {
     return null;
   }
 
   const initials = () => {
-    if (user.email) {
-      return user.email.slice(0, 2).toUpperCase();
+    if (user.emailAddresses?.[0]?.emailAddress) {
+      return user.emailAddresses[0].emailAddress.slice(0, 2).toUpperCase();
     }
 
-    const firstNameInitial = user.givenName
-      ? user.givenName.charAt(0).toUpperCase()
+    const firstNameInitial = user.firstName
+      ? user.firstName.charAt(0).toUpperCase()
       : "";
-    const lastNameInitial = user.familyName
-      ? user.familyName.charAt(0).toUpperCase()
+    const lastNameInitial = user.lastName
+      ? user.lastName.charAt(0).toUpperCase()
       : "";
     return firstNameInitial + lastNameInitial || "NA";
   };
 
   return (
     <>
-      {user.picture ? (
+      {user.imageUrl ? (
         <img
-          src={user.picture}
+          src={user.imageUrl}
           alt="User profile"
           className="h-8 w-8 rounded-full object-cover"
         />

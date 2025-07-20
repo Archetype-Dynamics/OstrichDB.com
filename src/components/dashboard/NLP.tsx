@@ -14,7 +14,7 @@
  
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, MessageSquare, CheckCircle, AlertTriangle, Loader2, X, Lightbulb, ArrowLeft, HelpCircle, Eye, Code } from 'lucide-react';
-import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../../config/api';
 
@@ -108,7 +108,8 @@ const NLPInterface = () => {
   const [confirmationMessage, setConfirmationMessage] = useState('');
   const [showConfirmationMessage, setShowConfirmationMessage] = useState(false);
   
-  const { getToken, user, isAuthenticated } = useKindeAuth();
+  const { getToken, isSignedIn } = useAuth();
+  const { user } = useUser();
 
   // Typewriter effect for the summary
   const { displayText: typedSummary, isTyping } = useTypewriter(
@@ -124,8 +125,8 @@ const NLPInterface = () => {
 
   // Set greeting when component mounts
   useEffect(() => {
-    if (user?.givenName) {
-      setGreeting(getRandomGreeting(user.givenName));
+    if (user?.firstName) {
+      setGreeting(getRandomGreeting(user.firstName));
     }
   }, [user]);
 

@@ -15,8 +15,8 @@
  **/
 
 import React, { useEffect, useState } from "react";
-import { KindeProvider } from "@kinde-oss/kinde-auth-react";
-import { BrowserRouter as Router, Routes, Route, useParams } from "react-router-dom";
+import { ClerkProvider } from "@clerk/clerk-react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { createTheme, MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
 
@@ -38,11 +38,8 @@ import { ThemeProvider } from "./context/ThemeContext";
 import NLPInterface from "./components/dashboard/NLP";
 import Contributors from "./pages/contributors";
 
-// Kinde authentication .env variables
-const clientId = import.meta.env.VITE_KINDE_CLIENT_ID;
-const domain = import.meta.env.VITE_KINDE_DOMAIN;
-const logoutUri = import.meta.env.VITE_KINDE_LOGOUT_URL;
-const redirectUri = import.meta.env.VITE_KINDE_REDIRECT_URL;
+// Clerk authentication .env variables
+const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 // Mantine theme configuration
 const theme = createTheme({
@@ -135,12 +132,7 @@ function App() {
   }
 
   return (
-    <KindeProvider
-      clientId={clientId}
-      domain={domain}
-      redirectUri={redirectUri}
-      logoutUri={logoutUri}
-    >
+    <ClerkProvider publishableKey={clerkPubKey}>
       <MantineProvider theme={theme}>
         <ThemeProvider>
           <Router>
@@ -248,7 +240,7 @@ function App() {
           </Router>
         </ThemeProvider>
       </MantineProvider>
-    </KindeProvider>
+    </ClerkProvider>
   );
 }
 
