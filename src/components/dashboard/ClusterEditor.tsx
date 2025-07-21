@@ -766,6 +766,7 @@ const ClusterEditor: React.FC = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 text-lg border-2 border-gray-400 rounded-lg focus:border-sb-amber focus:outline-none transition-colors"
                 style={{
+                  backgroundColor: "var(--bg-secondary)",
                   color: "var(--text-primary)",
                 }}
               />
@@ -811,6 +812,7 @@ const ClusterEditor: React.FC = () => {
                       onChange={(e) => setNewClusterName(e.target.value)}
                       className="flex-1 px-3 py-2 border-2 border-gray-400 rounded focus:border-sb-amber focus:outline-none transition-colors"
                       style={{
+                        backgroundColor: "var(--bg-secondary)",
                         color: "var(--text-primary)",
                       }}
                       onKeyDown={(e) =>
