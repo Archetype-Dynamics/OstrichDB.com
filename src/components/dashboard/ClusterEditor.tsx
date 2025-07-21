@@ -147,10 +147,71 @@ const ClusterEditor: React.FC = () => {
     if (isSignedIn && user && projectName && collectionName) {
       if (isSearchMode) {
         fetchAvailableClusters();
-      } else if (!isNewCluster) {
-        // If editing an existing cluster
+      } else if (isEditMode) {
+        // For edit mode, we need to check if the cluster exists first
+        checkClusterExistsAndFetchData();
+      }
+    }
+  }, [
+    isSignedIn,
+    user,
+    projectName,
+    collectionName,
+    clusterName,
+    isSearchMode,
+    isEditMode,
+  ]);
+
+  const checkClusterExistsAndFetchData = async () => {
+    try {
+      const token = await getToken();
+      setLoading(true);
+      setError(null);
+
+      // First, fetch available clusters to check if this cluster exists
+      const clustersResponse = await fetch(
+        `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(
+          projectName!
+        )}/collections/${encodeURIComponent(collectionName!)}/clusters`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        }
+      );
+
+      const clustersText = await clustersResponse.text();
+      let clustersData;
+      
+      try {
+        clustersData = JSON.parse(clustersText);
+      } catch {
+        clustersData = clustersText;
+      }
+
+      if (!clustersResponse.ok) {
+        throw new Error(
+          (typeof clustersData === 'object' && clustersData?.message) || 
+          clustersData || 
+          "Failed to fetch clusters"
+        );
+      }
+
+      const clusters = Array.isArray(clustersData?.clusters) ? clustersData.clusters : [];
+      setAvailableClusters(clusters);
+      
+      // Check if the cluster exists
+      const clusterExists = clusters.some((c: any) => c.name === clusterName);
+      setClusterExists(clusterExists);
+
+      if (clusterExists) {
+        // Cluster exists, fetch its records
         fetchRecordsInCluster();
       } else {
+        // New cluster, set up empty state
         setRecords([]);
         setClusterInfo({
           name: clusterName!,
@@ -163,16 +224,12 @@ const ClusterEditor: React.FC = () => {
         });
         setLoading(false);
       }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to fetch cluster data");
+      setClusterExists(false);
+      setLoading(false);
     }
-  }, [
-    isSignedIn,
-    user,
-    projectName,
-    collectionName,
-    clusterName,
-    isSearchMode,
-    isNewCluster,
-  ]);
+  };
 
   const fetchAvailableClusters = async () => {
     try {
