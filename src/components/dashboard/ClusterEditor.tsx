@@ -113,8 +113,9 @@ const ClusterEditor: React.FC = () => {
   const isSearchMode = !clusterName;
   const isEditMode = !!clusterName;
 
-  const isNewCluster =
-    isEditMode && availableClusters.every((c) => c.name !== clusterName);
+  const [clusterExists, setClusterExists] = useState<boolean | null>(null);
+  
+  const isNewCluster = isEditMode && clusterExists === false;
 
   // Generate raw format function
   const generateRawFormat = () => {
