@@ -69,7 +69,6 @@ interface ClusterInfo {
 
 type SortDirection = "asc" | "desc";
 type SortField = "name" | "type" | "value";
-type SaveStatus = "saved" | "saving" | "error" | "unsaved";
 
 const ClusterEditor: React.FC = () => {
   const { projectName, collectionName, clusterName } = useParams<{
@@ -86,7 +85,7 @@ const ClusterEditor: React.FC = () => {
   const [records, setRecords] = useState<Record[]>([]);
   const [clusterInfo, setClusterInfo] = useState<ClusterInfo | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
+  const [saveLoading, setSaveLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -142,54 +141,6 @@ const ClusterEditor: React.FC = () => {
     return rawContent;
   };
 
-  // Auto-save functionality with debouncing
-  const autoSave = useCallback(async () => {
-    if (!isEditMode || saveStatus === "saving") return;
-
-    // Validate all records first
-    const invalidRecords = records.filter((record) => {
-      const validation = validateRecord(record);
-      return !validation.isValid;
-    });
-
-    if (invalidRecords.length > 0) {
-      setSaveStatus("error");
-      return;
-    }
-
-    try {
-      setSaveStatus("saving");
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Mark all records as saved
-      setRecords((prev) =>
-        prev.map((record) => ({
-          ...record,
-          isNew: false,
-          isModified: false,
-        }))
-      );
-
-      setSaveStatus("saved");
-    } catch (err) {
-      setSaveStatus("error");
-    }
-  }, [records, isEditMode, saveStatus]);
-
-  // Debounced auto-save effect
-  useEffect(() => {
-    const hasChanges = records.some((r) => r.isNew || r.isModified);
-    if (!hasChanges) {
-      setSaveStatus("saved");
-      return;
-    }
-
-    setSaveStatus("unsaved");
-    const timeoutId = setTimeout(autoSave, 1500);
-    return () => clearTimeout(timeoutId);
-  }, [records, autoSave]);
 
   useEffect(() => {
     if (isSignedIn && user && projectName && collectionName) {
@@ -662,41 +613,6 @@ const ClusterEditor: React.FC = () => {
     errors: records.filter((r) => r.hasError).length,
   };
 
-  // Get save status indicator
-  const getSaveStatusIndicator = () => {
-    switch (saveStatus) {
-      case "saved":
-        return (
-          <div className="flex items-center gap-2 text-green-400 text-sm">
-            <CheckCircle size={16} />
-            <span>Saved</span>
-          </div>
-        );
-      case "saving":
-        return (
-          <div className="flex items-center gap-2 text-yellow-400 text-sm">
-            <div className="w-4 h-4 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
-            <span>Saving...</span>
-          </div>
-        );
-      case "error":
-        return (
-          <div className="flex items-center gap-2 text-red-400 text-sm">
-            <AlertTriangle size={16} />
-            <span>Error saving</span>
-          </div>
-        );
-      case "unsaved":
-        return (
-          <div className="flex items-center gap-2 text-gray-400 text-sm">
-            <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-            <span>Unsaved changes</span>
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
 
   if (loading) {
     return (
@@ -1008,7 +924,7 @@ const ClusterEditor: React.FC = () => {
     }
 
     try {
-      setSaveStatus("saving");
+      setSaveLoading(true);
       const token = await getToken();
 
       // Prepare the record payload
@@ -1041,7 +957,6 @@ const ClusterEditor: React.FC = () => {
       // Ensure cluster creation succeeded before proceeding
       if (!clusterCreationResponse.ok) {
         const errorText = await clusterCreationResponse.text();
-        setSaveStatus("error");
         setError(`Failed to create cluster: ${errorText || clusterCreationResponse.statusText}`);
         return;
       }
@@ -1076,20 +991,17 @@ const ClusterEditor: React.FC = () => {
 
           if (!recordCreationResponse.ok) {
             const errorText = await recordCreationResponse.text();
-            setSaveStatus("error");
             setError(`Failed to add record "${record.name}" to cluster: ${errorText || recordCreationResponse.statusText}`);
             return;
           }
         } catch (error) {
-          setSaveStatus("error");
           setError(`Network error while adding record "${record.name}": ${error instanceof Error ? error.message : 'Unknown error'}`);
           return;
         }
       }
 
-      setSaveStatus("saved");
       setSuccessMessage("Cluster created successfully!");
-      // Optionally, navigate to the new cluster's edit page with its real ID
+      // Navigate to the new cluster's edit page with its real ID
       setTimeout(() => {
         navigate(
           `/dashboard/projects/${encodeURIComponent(
@@ -1100,10 +1012,11 @@ const ClusterEditor: React.FC = () => {
         );
       }, 1000);
     } catch (err) {
-      setSaveStatus("error");
       setError(
         err instanceof Error ? err.message : "Failed to create cluster."
       );
+    } finally {
+      setSaveLoading(false);
     }
   }
   // PUT method for renaming a record
@@ -1236,7 +1149,7 @@ const ClusterEditor: React.FC = () => {
 
   const handleConfirmClusterUpdate = async () => {
     try {
-      setSaveStatus("saving");
+      setSaveLoading(true);
       setError(null);
       
       for (const record of records) {
@@ -1304,12 +1217,12 @@ const ClusterEditor: React.FC = () => {
         }))
       );
       
-      setSaveStatus("saved");
       setSuccessMessage("Changes saved!");
       fetchRecordsInCluster();
     } catch (err) {
-      setSaveStatus("error");
       setError(err instanceof Error ? err.message : "Failed to save changes");
+    } finally {
+      setSaveLoading(false);
     }
   };
 
@@ -1360,9 +1273,30 @@ const ClusterEditor: React.FC = () => {
               </div>
             </div>
 
-            {/* Right side - Save status */}
-            <div className="flex items-center gap-4">
-              {getSaveStatusIndicator()}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowHelpModal(true)}
+                className="p-2 rounded-lg border-2 border-gray-400 hover:border-sb-amber transition-colors"
+                style={{ backgroundColor: "var(--bg-primary)" }}
+                title="Help"
+              >
+                <HelpCircle
+                  size={16}
+                  style={{ color: "var(--text-secondary)" }}
+                />
+              </button>
+
+              <button
+                onClick={handleRefresh}
+                className="p-2 rounded-lg border-2 border-gray-400 hover:border-sb-amber transition-colors"
+                style={{ backgroundColor: "var(--bg-primary)" }}
+                title="Refresh"
+              >
+                <RefreshCw
+                  size={16}
+                  style={{ color: "var(--text-secondary)" }}
+                />
+              </button>
             </div>
           </div>
 
@@ -1945,30 +1879,11 @@ const ClusterEditor: React.FC = () => {
                   className="font-semibold mb-2"
                   style={{ color: "var(--text-primary)" }}
                 >
-                  Auto-Save
+                  Saving Changes
                 </h3>
                 <p className="text-sm mb-2">
-                  Your changes are automatically saved as you type. Look for the
-                  save status indicator in the top-right corner:
+                  Changes are saved when you click the "Confirm Changes" or "Confirm Cluster Creation" button at the bottom of the page. Make sure all validation errors are fixed before saving.
                 </p>
-                <ul className="text-sm list-disc list-inside ml-4 space-y-1">
-                  <li>
-                    <span className="text-green-400">✓ Saved</span> - All
-                    changes have been saved
-                  </li>
-                  <li>
-                    <span className="text-yellow-400">⏳ Saving...</span> -
-                    Currently saving your changes
-                  </li>
-                  <li>
-                    <span className="text-red-400">⚠️ Error saving</span> -
-                    There was an error, check for validation issues
-                  </li>
-                  <li>
-                    <span className="text-gray-400">• Unsaved changes</span> -
-                    Changes detected, will save shortly
-                  </li>
-                </ul>
               </div>
 
               <div>
@@ -2063,7 +1978,7 @@ const ClusterEditor: React.FC = () => {
                   <li>DateTime combines both with a T separator</li>
                   <li>UUIDs must follow standard format with hyphens</li>
                   <li>
-                    Changes are automatically saved - no need to manually save
+                    Click "Confirm Changes" to save your modifications
                   </li>
                 </ul>
               </div>
@@ -2232,12 +2147,9 @@ const ClusterEditor: React.FC = () => {
                 : handleConfirmClusterUpdate
             }
             className="mt-6 px-6 py-3 bg-sb-amber hover:bg-sb-amber-dark text-white rounded font-medium transition-colors"
-            disabled={
-              saveStatus === "saving" ||
-              (!isNewCluster && saveStatus !== "unsaved")
-            }
+            disabled={saveLoading}
           >
-            {saveStatus === "saving"
+            {saveLoading
               ? "Saving..."
               : isNewCluster
               ? "Confirm Cluster Creation"
