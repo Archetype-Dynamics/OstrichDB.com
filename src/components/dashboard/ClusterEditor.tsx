@@ -114,6 +114,8 @@ const ClusterEditor: React.FC = () => {
   const isEditMode = !!clusterName;
 
   const [clusterExists, setClusterExists] = useState<boolean | null>(null);
+  const [originalClusterName, setOriginalClusterName] = useState<string>('');
+  const [currentClusterName, setCurrentClusterName] = useState<string>('');
   
   const isNewCluster = isEditMode && clusterExists === false;
 
@@ -209,9 +211,13 @@ const ClusterEditor: React.FC = () => {
 
       if (clusterExists) {
         // Cluster exists, fetch its records
+        setOriginalClusterName(clusterName!);
+        setCurrentClusterName(clusterName!);
         fetchRecordsInCluster();
       } else {
         // New cluster, set up empty state
+        setOriginalClusterName(clusterName!);
+        setCurrentClusterName(clusterName!);
         setRecords([]);
         setClusterInfo({
           name: clusterName!,
@@ -489,6 +495,30 @@ const ClusterEditor: React.FC = () => {
         cluster.name.toLowerCase().includes(searchTerm.toLowerCase())
       )
     : [];
+
+  // Validate cluster name
+  const validateClusterName = (name: string): string | null => {
+    if (!name.trim()) {
+      return 'Cluster name is required';
+    }
+    
+    if (name.length > 32) {
+      return 'Cluster name must be 32 characters or less';
+    }
+    
+    // Check for invalid characters (only letters, numbers, underscores, and hyphens allowed)
+    const validNameRegex = /^[a-zA-Z0-9_-]+$/;
+    if (!validNameRegex.test(name)) {
+      return 'Cluster name can only contain letters, numbers, underscores (_), and hyphens (-)';
+    }
+    
+    // Check for spaces
+    if (name.includes(' ')) {
+      return 'Cluster name cannot contain spaces';
+    }
+    
+    return null;
+  };
 
   // Validate record value based on type
   const validateRecord = (
@@ -1211,6 +1241,107 @@ const ClusterEditor: React.FC = () => {
     try {
       setSaveLoading(true);
       setError(null);
+
+      // Check if cluster name changed
+      const clusterNameChanged = currentClusterName !== originalClusterName;
+      
+      if (clusterNameChanged) {
+        // Validate new cluster name
+        const nameError = validateClusterName(currentClusterName);
+        if (nameError) {
+          setError(nameError);
+          setSaveLoading(false);
+          return;
+        }
+
+        // Check for duplicate names by fetching available clusters
+        try {
+          const token = await getToken();
+          const clustersResponse = await fetch(
+            `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(
+              projectName!
+            )}/collections/${encodeURIComponent(collectionName!)}/clusters`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+            }
+          );
+
+          if (clustersResponse.ok) {
+            const clustersText = await clustersResponse.text();
+            let clustersData;
+            try {
+              clustersData = JSON.parse(clustersText);
+            } catch {
+              clustersData = clustersText;
+            }
+
+            const clusters = Array.isArray(clustersData?.clusters) ? clustersData.clusters : [];
+            const duplicateExists = clusters.some((c: any) => 
+              c.name.toLowerCase() === currentClusterName.toLowerCase() && c.name !== originalClusterName
+            );
+
+            if (duplicateExists) {
+              setError('A cluster with this name already exists');
+              setSaveLoading(false);
+              return;
+            }
+          }
+        } catch (err) {
+          console.error('Error checking for duplicate cluster names:', err);
+        }
+
+        // Rename the cluster first
+        try {
+          const token = await getToken();
+          const renameResponse = await fetch(
+            `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(
+              projectName!
+            )}/collections/${encodeURIComponent(
+              collectionName!
+            )}/clusters/${encodeURIComponent(originalClusterName)}?rename=${encodeURIComponent(currentClusterName)}`,
+            {
+              method: "PUT",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+            }
+          );
+
+          if (!renameResponse.ok) {
+            const errorText = await renameResponse.text();
+            throw new Error(`Failed to rename cluster: ${errorText}`);
+          }
+
+          // Update the original name and cluster info after successful rename
+          setOriginalClusterName(currentClusterName);
+          if (clusterInfo) {
+            setClusterInfo({
+              ...clusterInfo,
+              name: currentClusterName
+            });
+          }
+
+          // Update the URL to reflect the new cluster name
+          navigate(
+            `/dashboard/projects/${encodeURIComponent(
+              projectName!
+            )}/collections/${encodeURIComponent(
+              collectionName!
+            )}/cluster-editor/${encodeURIComponent(currentClusterName)}`
+          );
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Failed to rename cluster');
+          setSaveLoading(false);
+          return;
+        }
+      }
       
       for (const record of records) {
         if (record.isNew) {
@@ -1430,28 +1561,46 @@ const ClusterEditor: React.FC = () => {
               </label>
               <input
                 type="text"
-                value={clusterInfo?.name || clusterName || ""}
-                readOnly={isEditMode}
+                value={currentClusterName}
+                onChange={(e) => setCurrentClusterName(e.target.value)}
+                readOnly={isNewCluster}
                 className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none transition-colors ${
-                  isEditMode
+                  isNewCluster
                     ? "bg-gray-100 border-gray-300 cursor-not-allowed"
                     : "border-gray-400 focus:border-sb-amber"
                 }`}
                 style={{
-                  backgroundColor: isEditMode
+                  backgroundColor: isNewCluster
                     ? "var(--bg-primary)"
                     : "var(--bg-secondary)",
                   color: "var(--text-primary)",
                 }}
                 placeholder="Enter cluster name..."
+                maxLength={32}
               />
-              {isEditMode && (
+              {isNewCluster ? (
                 <p
                   className="text-xs mt-1"
                   style={{ color: "var(--text-secondary)" }}
                 >
                   Cluster name cannot be changed after creation
                 </p>
+              ) : (
+                <div>
+                  <p
+                    className="text-xs mt-1"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    {currentClusterName.length}/32 characters • Only letters, numbers, underscores (_), and hyphens (-) allowed
+                  </p>
+                  {currentClusterName !== originalClusterName && (
+                    <p
+                      className="text-xs mt-1 text-sb-amber"
+                    >
+                      Cluster will be renamed when you confirm changes
+                    </p>
+                  )}
+                </div>
               )}
             </div>
 

@@ -37,7 +37,10 @@ import {
   Search,
   Filter,
   ArrowUpDown,
-  Plus
+  Plus,
+  MoreVertical,
+  Edit2,
+  Trash2
 } from 'lucide-react';
 
 interface CollectionData {
@@ -88,6 +91,16 @@ const CollectionOverview: React.FC = () => {
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  
+  // Cluster options and rename/delete state
+  const [selectedCluster, setSelectedCluster] = useState<Cluster | null>(null);
+  const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
+  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [renameValue, setRenameValue] = useState('');
+  const [deleteConfirmationValue, setDeleteConfirmationValue] = useState('');
+  const [renameLoading, setRenameLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Navigation functions
   const navigateToProjects = () => {
@@ -280,6 +293,168 @@ const CollectionOverview: React.FC = () => {
       if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
       return 0;
     });
+
+  // Cluster name validation function
+  const validateClusterName = (name: string): string | null => {
+    if (!name.trim()) {
+      return 'Cluster name is required';
+    }
+    
+    if (name.length > 32) {
+      return 'Cluster name must be 32 characters or less';
+    }
+    
+    // Check for invalid characters (only letters, numbers, underscores, and hyphens allowed)
+    const validNameRegex = /^[a-zA-Z0-9_-]+$/;
+    if (!validNameRegex.test(name)) {
+      return 'Cluster name can only contain letters, numbers, underscores (_), and hyphens (-)';
+    }
+    
+    // Check for spaces
+    if (name.includes(' ')) {
+      return 'Cluster name cannot contain spaces';
+    }
+    
+    return null;
+  };
+
+  // Check for duplicate cluster names
+  const isDuplicateClusterName = (name: string): boolean => {
+    return clusters.some(cluster => 
+      cluster.name.toLowerCase() === name.toLowerCase()
+    );
+  };
+
+  // Cluster options modal functions
+  const openClusterOptionsModal = (cluster: Cluster, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent cluster click when clicking options
+    setSelectedCluster(cluster);
+    setIsOptionsModalOpen(true);
+  };
+
+  const openRenameModal = () => {
+    if (selectedCluster) {
+      setRenameValue(selectedCluster.name);
+      setIsOptionsModalOpen(false);
+      setIsRenameModalOpen(true);
+    }
+  };
+
+  const openDeleteModal = () => {
+    setDeleteConfirmationValue('');
+    setIsOptionsModalOpen(false);
+    setIsDeleteModalOpen(true);
+  };
+
+  // Handle cluster rename
+  const handleRenameCluster = async () => {
+    if (!selectedCluster || !renameValue.trim()) return;
+
+    // Validate new cluster name
+    const nameError = validateClusterName(renameValue);
+    if (nameError) {
+      setError(nameError);
+      return;
+    }
+
+    // Check if new name is different from current name
+    if (renameValue === selectedCluster.name) {
+      setError('New cluster name must be different from the current name');
+      return;
+    }
+
+    // Check for duplicate names
+    if (isDuplicateClusterName(renameValue)) {
+      setError('A cluster with this name already exists');
+      return;
+    }
+
+    try {
+      setRenameLoading(true);
+      setError(null);
+
+      const token = await getToken();
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(projectName!)}/collections/${encodeURIComponent(collectionName!)}/clusters/${encodeURIComponent(selectedCluster.name)}?rename=${encodeURIComponent(renameValue)}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          }
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to rename cluster: ${errorText}`);
+      }
+
+      // Success - refresh clusters and close modal
+      await fetchCollectionOverview();
+      setIsRenameModalOpen(false);
+      setRenameValue('');
+      setSelectedCluster(null);
+
+    } catch (err) {
+      console.error('Error renaming cluster:', err);
+      setError(err instanceof Error ? err.message : 'Failed to rename cluster');
+    } finally {
+      setRenameLoading(false);
+    }
+  };
+
+  // Handle cluster delete
+  const handleDeleteCluster = async () => {
+    if (!selectedCluster || deleteConfirmationValue !== selectedCluster.name) {
+      setError('Please type the exact cluster name to confirm deletion');
+      return;
+    }
+
+    try {
+      setDeleteLoading(true);
+      setError(null);
+
+      const token = await getToken();
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(projectName!)}/collections/${encodeURIComponent(collectionName!)}/clusters/${encodeURIComponent(selectedCluster.name)}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          }
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to delete cluster: ${errorText}`);
+      }
+
+      // Success - refresh clusters and close modal
+      await fetchCollectionOverview();
+      setIsDeleteModalOpen(false);
+      setDeleteConfirmationValue('');
+      setSelectedCluster(null);
+
+    } catch (err) {
+      console.error('Error deleting cluster:', err);
+      setError(err instanceof Error ? err.message : 'Failed to delete cluster');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -578,7 +753,16 @@ const CollectionOverview: React.FC = () => {
                             {cluster.name}
                           </h3>
                         </div>
-                        <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0" title="Active"></div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0" title="Active"></div>
+                          <button
+                            onClick={(e) => openClusterOptionsModal(cluster, e)}
+                            className="p-1 rounded hover:bg-gray-300 hover:bg-opacity-20 transition-colors flex-shrink-0"
+                            title="Cluster options"
+                          >
+                            <MoreVertical size={16} style={{ color: 'var(--text-secondary)' }} />
+                          </button>
+                        </div>
                       </div>
                       
                       <div className="space-y-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
@@ -719,6 +903,267 @@ const CollectionOverview: React.FC = () => {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cluster Options Modal */}
+      {isOptionsModalOpen && selectedCluster && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div 
+            className="p-6 rounded-lg w-full max-w-sm border-2 shadow-xl animate-slide-up"
+            style={{ 
+              backgroundColor: 'var(--bg-primary)', 
+              borderColor: 'var(--border-color, #374151)' 
+            }}
+          >
+            <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+              Cluster Options
+            </h2>
+            <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
+              "{selectedCluster.name}"
+            </p>
+
+            <div className="space-y-3">
+              <button
+                onClick={openRenameModal}
+                className="w-full flex items-center gap-3 px-4 py-3 border-2 border-gray-400 rounded-lg hover:border-sb-amber hover:bg-white hover:text-black transition-all duration-200"
+                style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+              >
+                <Edit2 size={20} className="text-sb-amber" />
+                <span>Rename Cluster</span>
+              </button>
+              
+              <button
+                onClick={openDeleteModal}
+                className="w-full flex items-center gap-3 px-4 py-3 border-2 border-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all duration-200"
+                style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+              >
+                <Trash2 size={20} className="text-red-500" />
+                <span>Delete Cluster</span>
+              </button>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => {
+                  setIsOptionsModalOpen(false);
+                  setSelectedCluster(null);
+                }}
+                className="px-4 py-2 border-2 rounded-xl transition-all duration-200 hover:opacity-80"
+                style={{ 
+                  backgroundColor: 'var(--bg-secondary)', 
+                  borderColor: 'var(--border-color, #374151)',
+                  color: 'var(--text-secondary)'
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rename Cluster Modal */}
+      {isRenameModalOpen && selectedCluster && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div 
+            className="p-6 rounded-lg w-full max-w-md border-2 shadow-xl animate-slide-up"
+            style={{ 
+              backgroundColor: 'var(--bg-primary)', 
+              borderColor: 'var(--border-color, #374151)' 
+            }}
+          >
+            <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+              Rename Cluster
+            </h2>
+
+            {error && (
+              <div 
+                className="border px-4 py-3 rounded mb-4"
+                style={{ 
+                  backgroundColor: 'var(--error-bg, #fef2f2)', 
+                  borderColor: 'var(--error-border, #fca5a5)',
+                  color: 'var(--error-text, #dc2626)'
+                }}
+              >
+                {error}
+              </div>
+            )}
+
+            <div className="mb-4">
+              <label 
+                className="block text-sm font-medium mb-1" 
+                style={{ color: 'var(--text-primary)' }}
+              >
+                Current Name
+              </label>
+              <div 
+                className="w-full p-2 border-2 rounded bg-gray-100"
+                style={{ 
+                  backgroundColor: 'var(--bg-tertiary, #f3f4f6)', 
+                  borderColor: 'var(--border-color, #374151)',
+                  color: 'var(--text-secondary)'
+                }}
+              >
+                {selectedCluster.name}
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <label 
+                className="block text-sm font-medium mb-1" 
+                style={{ color: 'var(--text-primary)' }}
+              >
+                New Cluster Name *
+              </label>
+              <input
+                type="text"
+                value={renameValue}
+                onChange={(e) => {
+                  setRenameValue(e.target.value);
+                  if (error) setError(null);
+                }}
+                className="w-full p-2 border-2 rounded focus:border-sb-amber focus:outline-none transition-colors"
+                style={{ 
+                  backgroundColor: 'var(--bg-secondary)', 
+                  borderColor: 'var(--border-color, #374151)',
+                  color: 'var(--text-primary)'
+                }}
+                placeholder="new-cluster-name"
+                disabled={renameLoading}
+                maxLength={32}
+              />
+              <div className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+                {renameValue.length}/32 characters • Only letters, numbers, underscores (_), and hyphens (-) allowed
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setIsRenameModalOpen(false);
+                  setError(null);
+                  setRenameValue('');
+                  setSelectedCluster(null);
+                }}
+                className="px-4 py-2 border-2 rounded-xl transition-all duration-200 hover:opacity-80"
+                style={{ 
+                  backgroundColor: 'var(--bg-secondary)', 
+                  borderColor: 'var(--border-color, #374151)',
+                  color: 'var(--text-secondary)'
+                }}
+                disabled={renameLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRenameCluster}
+                className="px-6 py-2 bg-sb-amber hover:bg-sb-amber-dark text-white rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={renameLoading || !renameValue.trim() || validateClusterName(renameValue) !== null || renameValue === selectedCluster.name}
+              >
+                {renameLoading ? 'Renaming...' : 'Rename Cluster'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Cluster Modal */}
+      {isDeleteModalOpen && selectedCluster && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div 
+            className="p-6 rounded-lg w-full max-w-md border-2 shadow-xl animate-slide-up"
+            style={{ 
+              backgroundColor: 'var(--bg-primary)', 
+              borderColor: 'var(--border-color, #374151)' 
+            }}
+          >
+            <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+              Delete Cluster
+            </h2>
+
+            <div className="mb-6">
+              <div 
+                className="border-l-4 border-red-500 p-4 mb-4"
+                style={{ backgroundColor: 'var(--warning-bg, #fef2f2)' }}
+              >
+                <div className="flex">
+                  <div className="ml-3">
+                    <p className="text-sm" style={{ color: 'var(--warning-text, #dc2626)' }}>
+                      <strong>Warning:</strong> This action cannot be undone. All records in this cluster will be permanently deleted.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+                Cluster to delete: <span className="font-semibold">{selectedCluster.name}</span>
+              </p>
+
+              {error && (
+                <div 
+                  className="border px-4 py-3 rounded mb-4"
+                  style={{ 
+                    backgroundColor: 'var(--error-bg, #fef2f2)', 
+                    borderColor: 'var(--error-border, #fca5a5)',
+                    color: 'var(--error-text, #dc2626)'
+                  }}
+                >
+                  {error}
+                </div>
+              )}
+
+              <label 
+                className="block text-sm font-medium mb-1" 
+                style={{ color: 'var(--text-primary)' }}
+              >
+                Type "{selectedCluster.name}" to confirm deletion *
+              </label>
+              <input
+                type="text"
+                value={deleteConfirmationValue}
+                onChange={(e) => {
+                  setDeleteConfirmationValue(e.target.value);
+                  if (error) setError(null);
+                }}
+                className="w-full p-2 border-2 rounded focus:border-red-500 focus:outline-none transition-colors"
+                style={{ 
+                  backgroundColor: 'var(--bg-secondary)', 
+                  borderColor: 'var(--border-color, #374151)',
+                  color: 'var(--text-primary)'
+                }}
+                placeholder="Type cluster name here..."
+                disabled={deleteLoading}
+              />
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setError(null);
+                  setDeleteConfirmationValue('');
+                  setSelectedCluster(null);
+                }}
+                className="px-4 py-2 border-2 rounded-xl transition-all duration-200 hover:opacity-80"
+                style={{ 
+                  backgroundColor: 'var(--bg-secondary)', 
+                  borderColor: 'var(--border-color, #374151)',
+                  color: 'var(--text-secondary)'
+                }}
+                disabled={deleteLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteCluster}
+                className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={deleteLoading || deleteConfirmationValue !== selectedCluster.name}
+              >
+                {deleteLoading ? 'Deleting...' : 'Delete Cluster'}
+              </button>
             </div>
           </div>
         </div>
