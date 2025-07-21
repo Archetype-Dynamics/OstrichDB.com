@@ -33,7 +33,11 @@ import {
   ChevronDown,
   ChevronRight,
   Eye,
-  EyeOff
+  EyeOff,
+  Search,
+  Filter,
+  ArrowUpDown,
+  Plus
 } from 'lucide-react';
 
 interface CollectionData {
@@ -52,6 +56,9 @@ interface Cluster {
   lastModified: string;
   createdAt: string;
 }
+
+type SortField = 'name' | 'id' | 'recordCount';
+type SortDirection = 'asc' | 'desc';
 
 
 
@@ -75,6 +82,12 @@ const CollectionOverview: React.FC = () => {
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showClusters, setShowClusters] = useState(true);
   const [collectionData, setCollectionData] = useState<CollectionData | null>(null);
+  
+  // Cluster filtering and sorting state
+  const [clusterSearchTerm, setClusterSearchTerm] = useState('');
+  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   // Navigation functions
   const navigateToProjects = () => {
@@ -232,6 +245,42 @@ const CollectionOverview: React.FC = () => {
     return num.toString();
   };
 
+  // Sorting function
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  // Filter and sort clusters
+  const filteredAndSortedClusters = clusters
+    .filter(cluster => {
+      const matchesSearch = 
+        cluster.name.toLowerCase().includes(clusterSearchTerm.toLowerCase()) ||
+        cluster.id.toString().toLowerCase().includes(clusterSearchTerm.toLowerCase());
+      return matchesSearch;
+    })
+    .sort((a, b) => {
+      let aValue: string | number = a[sortField];
+      let bValue: string | number = b[sortField];
+
+      // Convert to appropriate type for comparison
+      if (sortField === 'recordCount') {
+        aValue = Number(aValue);
+        bValue = Number(bValue);
+      } else {
+        aValue = String(aValue).toLowerCase();
+        bValue = String(bValue).toLowerCase();
+      }
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center mt-40">
@@ -377,18 +426,103 @@ const CollectionOverview: React.FC = () => {
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
-                Clusters ({clusters.length})
+                Clusters ({filteredAndSortedClusters.length}{filteredAndSortedClusters.length !== clusters.length ? ` of ${clusters.length}` : ''})
               </h2>
-              <button
-                onClick={() => setShowClusters(!showClusters)}
-                className="flex items-center gap-2 px-4 py-2 border-2 border-gray-400 rounded-lg hover:border-sb-amber transition-colors"
-                style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-              >
-                {showClusters ? <EyeOff size={16} /> : <Eye size={16} />}
-                <span>{showClusters ? 'Hide' : 'Show'} Clusters</span>
-                {showClusters ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => navigate(`/dashboard/projects/${encodeURIComponent(projectName!)}/collections/${encodeURIComponent(collectionName!)}/cluster-editor`)}
+                  className="flex items-center gap-2 px-4 py-2 bg-sb-amber hover:bg-sb-amber-dark text-white rounded-lg font-medium transition-colors"
+                >
+                  <Plus size={16} />
+                  <span>Create Cluster</span>
+                </button>
+                <button
+                  onClick={() => setShowClusters(!showClusters)}
+                  className="flex items-center gap-2 px-4 py-2 border-2 border-gray-400 rounded-lg hover:border-sb-amber transition-colors"
+                  style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+                >
+                  {showClusters ? <EyeOff size={16} /> : <Eye size={16} />}
+                  <span>{showClusters ? 'Hide' : 'Show'} Clusters</span>
+                  {showClusters ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                </button>
+              </div>
             </div>
+
+            {/* Search and Filter Controls */}
+            {showClusters && clusters.length > 0 && (
+              <div className="mb-4 flex flex-col sm:flex-row gap-4">
+                {/* Search Bar */}
+                <div className="relative flex-1">
+                  <Search
+                    size={16}
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2"
+                    style={{ color: 'var(--text-secondary)' }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Search clusters by name or ID..."
+                    value={clusterSearchTerm}
+                    onChange={(e) => setClusterSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border-2 border-gray-400 rounded-lg focus:border-sb-amber focus:outline-none transition-colors"
+                    style={{
+                      backgroundColor: 'var(--bg-secondary)',
+                      color: 'var(--text-primary)',
+                    }}
+                  />
+                </div>
+
+                {/* Sort Controls */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleSort('name')}
+                    className={`flex items-center gap-2 px-3 py-2 border-2 rounded-lg transition-colors ${
+                      sortField === 'name' ? 'border-sb-amber bg-sb-amber text-black' : 'border-gray-400 hover:border-sb-amber'
+                    }`}
+                    style={{ 
+                      backgroundColor: sortField === 'name' ? '' : 'var(--bg-secondary)',
+                      color: sortField === 'name' ? 'black' : 'var(--text-primary)'
+                    }}
+                  >
+                    <span>Name</span>
+                    {sortField === 'name' && (
+                      <ArrowUpDown size={14} className={`transition-transform ${sortDirection === 'desc' ? 'rotate-180' : ''}`} />
+                    )}
+                  </button>
+                  
+                  <button
+                    onClick={() => handleSort('id')}
+                    className={`flex items-center gap-2 px-3 py-2 border-2 rounded-lg transition-colors ${
+                      sortField === 'id' ? 'border-sb-amber bg-sb-amber text-black' : 'border-gray-400 hover:border-sb-amber'
+                    }`}
+                    style={{ 
+                      backgroundColor: sortField === 'id' ? '' : 'var(--bg-secondary)',
+                      color: sortField === 'id' ? 'black' : 'var(--text-primary)'
+                    }}
+                  >
+                    <span>ID</span>
+                    {sortField === 'id' && (
+                      <ArrowUpDown size={14} className={`transition-transform ${sortDirection === 'desc' ? 'rotate-180' : ''}`} />
+                    )}
+                  </button>
+                  
+                  <button
+                    onClick={() => handleSort('recordCount')}
+                    className={`flex items-center gap-2 px-3 py-2 border-2 rounded-lg transition-colors ${
+                      sortField === 'recordCount' ? 'border-sb-amber bg-sb-amber text-black' : 'border-gray-400 hover:border-sb-amber'
+                    }`}
+                    style={{ 
+                      backgroundColor: sortField === 'recordCount' ? '' : 'var(--bg-secondary)',
+                      color: sortField === 'recordCount' ? 'black' : 'var(--text-primary)'
+                    }}
+                  >
+                    <span>Records</span>
+                    {sortField === 'recordCount' && (
+                      <ArrowUpDown size={14} className={`transition-transform ${sortDirection === 'desc' ? 'rotate-180' : ''}`} />
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
 
             {showClusters && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -408,9 +542,25 @@ const CollectionOverview: React.FC = () => {
                       Create First Cluster
                     </button>
                   </div>
+                ) : filteredAndSortedClusters.length === 0 ? (
+                  <div className="col-span-full text-center py-8">
+                    <div className="text-4xl mb-4">🔍</div>
+                    <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                      No clusters found
+                    </h3>
+                    <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>
+                      No clusters match your search criteria. Try adjusting your search term.
+                    </p>
+                    <button
+                      onClick={() => setClusterSearchTerm('')}
+                      className="bg-sb-amber hover:bg-sb-amber-dark text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                    >
+                      Clear Search
+                    </button>
+                  </div>
                 ) : (
-                  // This is where your existing clusters will be displayed
-                  clusters.map((cluster) => (
+                  // This is where your filtered and sorted clusters will be displayed
+                  filteredAndSortedClusters.map((cluster) => (
                     <div
                       key={cluster.id}
                       onClick={() => handleClusterClick(cluster.name)}
