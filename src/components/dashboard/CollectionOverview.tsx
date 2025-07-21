@@ -73,7 +73,7 @@ const CollectionOverview: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showHelpModal, setShowHelpModal] = useState(false);
-  const [showClusters, setShowClusters] = useState(false);
+  const [showClusters, setShowClusters] = useState(true);
   const [collectionData, setCollectionData] = useState<CollectionData | null>(null);
 
   // Navigation functions
