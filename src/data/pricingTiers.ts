@@ -34,10 +34,10 @@ export const pricingTiers: PricingTier[] = [
     price: "$25",
     description: "For production applications with room to grow.",
     features: [
-      "2 users",
-      "2 Projects",
-      "2 collections (databases) max",
-      "2GB max storage",
+      "3 users",
+      "3 Projects",
+      "3 collections (databases) max",
+      "3GB max storage",
       "5 backups per day",
       "Access to OstrichDB Discord community",
       "Private support channels in Discord",
@@ -53,7 +53,7 @@ export const pricingTiers: PricingTier[] = [
     description: "For large-scale applications and growing teams.",
     features: [
       "50 users",
-      "20 Projects",
+      "30 Projects",
       "100 collections (databases) max",
       "64TB max storage",
       "10 backups per day",
