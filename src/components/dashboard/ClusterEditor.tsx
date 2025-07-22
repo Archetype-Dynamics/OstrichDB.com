@@ -34,7 +34,6 @@ import {
   getDataTypesByCategory,
   validateRecordName,
   validateRecordValue,
-  getDefaultValue,
   getInputPropsForType,
   DATA_TYPE_DESCRIPTIONS,
   DATA_TYPE_EXAMPLES,
@@ -596,9 +595,9 @@ const ClusterEditor: React.FC = () => {
             updatedRecord.isModified = modifiedFields.size > 0;
           }
 
-          // If type changed, provide a default value
+          // If type changed, clear the value so placeholder shows
           if (field === "type") {
-            updatedRecord.value = getDefaultValue(value as RecordDataType);
+            updatedRecord.value = "";
             // Also track value modification if type changed
             if (!record.isNew && updatedRecord.modifiedFields) {
               updatedRecord.modifiedFields.add("value");
