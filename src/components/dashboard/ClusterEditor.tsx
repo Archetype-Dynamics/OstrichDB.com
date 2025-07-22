@@ -376,24 +376,27 @@ const ClusterEditor: React.FC = () => {
 
       const transformedRecords = recordsArray.map(
         (
-          record: { id: any; name: any; type: any; value: any },
+          record: { id: any; name: any; type: any; value: any; typeAsString?: any },
           index: number
-        ) => ({
+        ) => {
+
+          return ({
           id: `client_${Date.now()}_${index}_${Math.random()
             .toString(36)
             .substr(2, 9)}`, // Always unique client ID
           serverId: record.id, // Keep server ID for reference if needed
           name: record.name || "",
           originalName: record.name || "",
-          type: record.type || "STRING",
-          originalType: record.type || "STRING",
+          type: record.typeAsString || (record.type && record.type !== "INVALID" ? record.type : "STRING"),
+          originalType: record.typeAsString || (record.type && record.type !== "INVALID" ? record.type : "STRING"),
           value: decodeURIComponent(record.value || ""),
           originalValue: decodeURIComponent(record.value || ""),
           isNew: false,
           isModified: false,
           hasError: false,
           modifiedFields: new Set<string>(),
-        })
+        });
+        }
       );
       setRecords(transformedRecords);
 
@@ -1471,19 +1474,21 @@ const ClusterEditor: React.FC = () => {
       const activeRecords = records.filter(r => !r.isDeleted);
       for (const record of activeRecords) {
         if (record.isNew) {
-          // For new records, send a POST request with query parameters
           const token = await getToken();
           const formattedValue = formatValueForAPI(record.value, record.type);
-          const response = await fetch(
-            `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(
-              projectName!
-            )}/collections/${encodeURIComponent(
-              collectionName!
-            )}/clusters/${encodeURIComponent(
-              clusterName!
-            )}/records/${encodeURIComponent(
-              record.name
-            )}?type=${encodeURIComponent(record.type)}&value=${encodeURIComponent(formattedValue)}`,
+          
+          // Don't encode square brackets for array types - backend might expect literal []
+          const typeParam = record.type;
+          
+          const requestUrl = `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(
+            projectName!
+          )}/collections/${encodeURIComponent(
+            collectionName!
+          )}/clusters/${encodeURIComponent(
+            clusterName!
+          )}/records/${encodeURIComponent(record.name)}?type=${typeParam}&value=${encodeURIComponent(formattedValue)}`;
+
+          const response = await fetch(requestUrl,
             {
               method: "POST",
               headers: {
