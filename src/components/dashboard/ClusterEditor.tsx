@@ -26,7 +26,6 @@ import {
   ArrowLeft,
   HelpCircle,
   AlertTriangle,
-  CheckCircle,
   X,
   ChevronRight,
 } from "lucide-react";
@@ -39,6 +38,7 @@ import {
   getInputPropsForType,
   DATA_TYPE_DESCRIPTIONS,
   DATA_TYPE_EXAMPLES,
+  formatValueForAPI,
 } from "../../utils/recordDataTypes";
 
 interface Record {
@@ -88,7 +88,6 @@ const ClusterEditor: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saveLoading, setSaveLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Cluster search/create state
   const [availableClusters, setAvailableClusters] = useState<ClusterInfo[]>([]);
@@ -389,8 +388,8 @@ const ClusterEditor: React.FC = () => {
           originalName: record.name || "",
           type: record.type || "STRING",
           originalType: record.type || "STRING",
-          value: record.value || "",
-          originalValue: record.value || "",
+          value: decodeURIComponent(record.value || ""),
+          originalValue: decodeURIComponent(record.value || ""),
           isNew: false,
           isModified: false,
           hasError: false,
@@ -1078,7 +1077,6 @@ const ClusterEditor: React.FC = () => {
   ): Promise<void> {
     event.preventDefault();
     setError(null);
-    setSuccessMessage(null);
 
     // Validate all records before sending
     const invalidRecords = records.filter((record) => {
@@ -1151,8 +1149,6 @@ const ClusterEditor: React.FC = () => {
               clusterInfo.name
             )}/records/${encodeURIComponent(
               record.name
-            )}?type=${encodeURIComponent(record.type)}&value=${encodeURIComponent(
-              record.value
             )}`,
             {
               method: "POST",
@@ -1161,6 +1157,10 @@ const ClusterEditor: React.FC = () => {
                 "Content-Type": "application/json",
                 Accept: "application/json",
               },
+              body: JSON.stringify({
+                type: record.type,
+                value: formatValueForAPI(record.value, record.type)
+              }),
             }
           );
 
@@ -1175,17 +1175,14 @@ const ClusterEditor: React.FC = () => {
         }
       }
 
-      setSuccessMessage("Cluster created successfully!");
       // Navigate to the new cluster's edit page with its real ID
-      setTimeout(() => {
-        navigate(
-          `/dashboard/projects/${encodeURIComponent(
-            projectName!
-          )}/collections/${encodeURIComponent(
-            collectionName!
-          )}/cluster-editor/${encodeURIComponent(clusterInfo.name)}`
-        );
-      }, 1000);
+      navigate(
+        `/dashboard/projects/${encodeURIComponent(
+          projectName!
+        )}/collections/${encodeURIComponent(
+          collectionName!
+        )}/cluster-editor/${encodeURIComponent(clusterInfo.name)}`
+      );
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to create cluster."
@@ -1204,7 +1201,7 @@ const ClusterEditor: React.FC = () => {
         collectionName!
       )}/clusters/${encodeURIComponent(
         clusterName!
-      )}/records/${encodeURIComponent(oldRecordName)}?rename=${encodeURIComponent(newRecordName)}`;
+      )}/records/${encodeURIComponent(oldRecordName)}`;
       
       
       const response = await fetch(url, {
@@ -1214,6 +1211,9 @@ const ClusterEditor: React.FC = () => {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
+        body: JSON.stringify({
+          rename: newRecordName
+        }),
       });
 
       const responseText = await response.text();
@@ -1245,7 +1245,7 @@ const ClusterEditor: React.FC = () => {
         collectionName!
       )}/clusters/${encodeURIComponent(
         clusterName!
-      )}/records/${encodeURIComponent(recordName)}?type=${encodeURIComponent(newType)}`;
+      )}/records/${encodeURIComponent(recordName)}`;
       
       
       const response = await fetch(url, {
@@ -1255,6 +1255,9 @@ const ClusterEditor: React.FC = () => {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
+        body: JSON.stringify({
+          type: newType
+        }),
       });
 
       const responseText = await response.text();
@@ -1277,7 +1280,7 @@ const ClusterEditor: React.FC = () => {
   };
 
   // PUT method for updating record value
-  const updateRecordValue = async (recordName: string, newValue: string) => {
+  const updateRecordValue = async (recordName: string, newValue: string, recordType: string) => {
     try {
       const token = await getToken();
       
@@ -1290,7 +1293,7 @@ const ClusterEditor: React.FC = () => {
         collectionName!
       )}/clusters/${encodeURIComponent(
         clusterName!
-      )}/records/${encodedRecordName}?value=${encodeURIComponent(newValue)}`;
+      )}/records/${encodedRecordName}`;
       
       
       const response = await fetch(url, {
@@ -1300,6 +1303,9 @@ const ClusterEditor: React.FC = () => {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
+        body: JSON.stringify({
+          value: formatValueForAPI(newValue, recordType as RecordDataType)
+        }),
       });
 
       const responseText = await response.text();
@@ -1466,9 +1472,10 @@ const ClusterEditor: React.FC = () => {
       const activeRecords = records.filter(r => !r.isDeleted);
       for (const record of activeRecords) {
         if (record.isNew) {
-          // For new records, send a POST request
+          // For new records, send a POST request with query parameters
           const token = await getToken();
-          await fetch(
+          const formattedValue = formatValueForAPI(record.value, record.type);
+          const response = await fetch(
             `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(
               projectName!
             )}/collections/${encodeURIComponent(
@@ -1477,18 +1484,27 @@ const ClusterEditor: React.FC = () => {
               clusterName!
             )}/records/${encodeURIComponent(
               record.name
-            )}?type=${encodeURIComponent(
-              record.type
-            )}&value=${encodeURIComponent(record.value)}`,
+            )}?type=${encodeURIComponent(record.type)}&value=${encodeURIComponent(formattedValue)}`,
             {
               method: "POST",
               headers: {
                 Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
                 Accept: "application/json",
               },
             }
           );
+
+          const responseText = await response.text();
+          let responseData;
+          try {
+            responseData = JSON.parse(responseText);
+          } catch {
+            responseData = responseText;
+          }
+
+          if (!response.ok) {
+            throw new Error(`Failed to create record: ${response.status} ${typeof responseData === 'object' && responseData?.message || responseData || 'Unknown error'}`);
+          }
         } else if (record.isModified && record.modifiedFields) {
           // For modified records, use specific PUT methods based on what changed
           const modifiedFields = record.modifiedFields;
@@ -1509,7 +1525,7 @@ const ClusterEditor: React.FC = () => {
           
           // Handle value change
           if (modifiedFields.has("value")) {
-            await updateRecordValue(record.name, record.value);
+            await updateRecordValue(record.name, record.value, record.type);
             // Update the original value after successful update
             record.originalValue = record.value;
           }
@@ -1532,7 +1548,6 @@ const ClusterEditor: React.FC = () => {
         }))
       );
       
-      setSuccessMessage("Changes saved!");
       fetchRecordsInCluster();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save changes");
@@ -1637,29 +1652,6 @@ const ClusterEditor: React.FC = () => {
             </div>
           )}
 
-          {successMessage && (
-            <div className="mt-4 bg-green-900/20 border border-green-500/30 rounded-lg p-4 flex items-start gap-3">
-              <CheckCircle
-                size={20}
-                className="text-green-400 flex-shrink-0 mt-0.5"
-              />
-              <div>
-                <div className="text-green-400 font-medium">Success</div>
-                <div
-                  className="text-sm"
-                  style={{ color: "var(--text-secondary)" }}
-                >
-                  {successMessage}
-                </div>
-              </div>
-              <button
-                onClick={() => setSuccessMessage(null)}
-                className="ml-auto"
-              >
-                <X size={16} className="text-green-400 hover:text-green-300" />
-              </button>
-            </div>
-          )}
         </div>
       </div>
 
@@ -2455,8 +2447,6 @@ const ClusterEditor: React.FC = () => {
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(generateRawFormat());
-                    setSuccessMessage("Raw format copied to clipboard!");
-                    setTimeout(() => setSuccessMessage(null), 3000);
                   }}
                   className="px-3 py-1 text-sm bg-sb-amber hover:bg-sb-amber-dark text-black rounded font-medium transition-colors"
                 >
@@ -2574,9 +2564,6 @@ const ClusterEditor: React.FC = () => {
               : "Confirm Changes"}
           </button>
           {error && <div className="mt-4 text-red-500">{error}</div>}
-          {successMessage && (
-            <div className="mt-4 text-green-500">{successMessage}</div>
-          )}
         </div>
       )}
     </div>
