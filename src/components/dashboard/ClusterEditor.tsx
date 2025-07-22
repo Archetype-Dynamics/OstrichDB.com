@@ -52,6 +52,7 @@ interface Record {
   originalValue?: string; // Track original value
   isNew?: boolean;
   isModified?: boolean;
+  isDeleted?: boolean; // Track records that need to be deleted
   hasError?: boolean;
   errorMessage?: string;
   modifiedFields?: Set<string>; // Track specific fields that changed
@@ -105,6 +106,12 @@ const ClusterEditor: React.FC = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showRawModal, setShowRawModal] = useState(false);
+  
+  // Record deletion confirmation state
+  const [recordToDelete, setRecordToDelete] = useState<Record | null>(null);
+  const [showDeleteRecordModal, setShowDeleteRecordModal] = useState(false);
+  const [skipDeleteConfirmation, setSkipDeleteConfirmation] = useState(false);
+  const [deleteRecordLoading, setDeleteRecordLoading] = useState(false);
 
   // Get categorized data types for the UI
   const dataTypeCategories = getDataTypesByCategory();
@@ -614,14 +621,88 @@ const ClusterEditor: React.FC = () => {
     );
   };
 
-  // Delete record
+  // Check if delete confirmation should be skipped (24 hour rule)
+  const shouldSkipDeleteConfirmation = () => {
+    const lastSkipTime = localStorage.getItem('skipRecordDeleteConfirmation');
+    if (!lastSkipTime) return false;
+    
+    const now = new Date().getTime();
+    const skipTime = parseInt(lastSkipTime);
+    const twentyFourHours = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    
+    return (now - skipTime) < twentyFourHours;
+  };
+
+  // Handle record deletion with confirmation
+  const handleDeleteRecord = (id: string) => {
+    const record = records.find(r => r.id === id);
+    if (!record) return;
+
+    // Check if we should skip confirmation
+    if (shouldSkipDeleteConfirmation()) {
+      confirmDeleteRecord(record);
+      return;
+    }
+
+    // Show confirmation modal
+    setRecordToDelete(record);
+    setShowDeleteRecordModal(true);
+  };
+
+  // Confirm record deletion
+  const confirmDeleteRecord = async (record: Record) => {
+    try {
+      setDeleteRecordLoading(true);
+      
+      // If it's an existing record (not new), mark it for deletion but keep it in records array
+      if (!record.isNew) {
+        // Add a flag to track records that need to be deleted on the server
+        setRecords(prevRecords => 
+          prevRecords.map(r => 
+            r.id === record.id 
+              ? { ...r, isDeleted: true } 
+              : r
+          )
+        );
+      } else {
+        // For new records, just remove from UI completely
+        setRecords(prevRecords => prevRecords.filter(r => r.id !== record.id));
+      }
+      
+      // Remove from selected records
+      setSelectedRecords(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(record.id);
+        return newSet;
+      });
+      
+      // Close modal and reset state
+      setShowDeleteRecordModal(false);
+      setRecordToDelete(null);
+      setSkipDeleteConfirmation(false);
+      
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete record');
+    } finally {
+      setDeleteRecordLoading(false);
+    }
+  };
+
+  // Handle the confirmation modal
+  const handleConfirmDeleteRecord = () => {
+    if (!recordToDelete) return;
+
+    // Save skip preference if checked
+    if (skipDeleteConfirmation) {
+      localStorage.setItem('skipRecordDeleteConfirmation', new Date().getTime().toString());
+    }
+
+    confirmDeleteRecord(recordToDelete);
+  };
+
+  // Legacy delete record function (kept for compatibility)
   const deleteRecord = (id: string) => {
-    setRecords(records.filter((record) => record.id !== id));
-    setSelectedRecords((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(id);
-      return newSet;
-    });
+    handleDeleteRecord(id);
   };
 
   // Delete selected records
@@ -666,10 +747,13 @@ const ClusterEditor: React.FC = () => {
     }
   };
 
-  // Filter and sort records (only for edit mode)
+  // Filter and sort records (only for edit mode, exclude deleted records)
   const filteredAndSortedRecords = isEditMode
     ? records
         .filter((record) => {
+          // First filter out deleted records
+          if (record.isDeleted) return false;
+          
           const recordSearchTerm = isEditMode ? searchTerm : ""; // Use different search for records vs clusters
           const matchesSearch =
             record.name
@@ -693,12 +777,13 @@ const ClusterEditor: React.FC = () => {
         })
     : [];
 
-  // Calculate statistics
+  // Calculate statistics (only for active records)
+  const activeRecords = records.filter(r => !r.isDeleted);
   const stats = {
-    total: records.length,
-    modified: records.filter((r) => r.isModified).length,
-    new: records.filter((r) => r.isNew).length,
-    errors: records.filter((r) => r.hasError).length,
+    total: activeRecords.length,
+    modified: activeRecords.filter((r) => r.isModified).length,
+    new: activeRecords.filter((r) => r.isNew).length,
+    errors: activeRecords.filter((r) => r.hasError).length,
   };
 
 
@@ -1343,7 +1428,43 @@ const ClusterEditor: React.FC = () => {
         }
       }
       
-      for (const record of records) {
+      // Handle deleted records first
+      const deletedRecords = records.filter(r => r.isDeleted && !r.isNew);
+      for (const record of deletedRecords) {
+        try {
+          const token = await getToken();
+          const deleteResponse = await fetch(
+            `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(
+              projectName!
+            )}/collections/${encodeURIComponent(
+              collectionName!
+            )}/clusters/${encodeURIComponent(
+              currentClusterName
+            )}/records/${encodeURIComponent(record.originalName || record.name)}`,
+            {
+              method: "DELETE",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+            }
+          );
+
+          if (!deleteResponse.ok) {
+            const errorText = await deleteResponse.text();
+            throw new Error(`Failed to delete record "${record.name}": ${errorText}`);
+          }
+        } catch (err) {
+          setError(err instanceof Error ? err.message : `Failed to delete record "${record.name}"`);
+          setSaveLoading(false);
+          return;
+        }
+      }
+
+      // Handle remaining records (new and modified)
+      const activeRecords = records.filter(r => !r.isDeleted);
+      for (const record of activeRecords) {
         if (record.isNew) {
           // For new records, send a POST request
           const token = await getToken();
@@ -1397,14 +1518,17 @@ const ClusterEditor: React.FC = () => {
       
       // Update records state to reflect successful save
       setRecords((prev) =>
-        prev.map((record) => ({
-          ...record,
-          isNew: false,
-          isModified: false,
-          modifiedFields: new Set<string>(),
-          originalName: record.name,
-          originalType: record.type,
-          originalValue: record.value,
+        prev
+          .filter(record => !record.isDeleted) // Remove deleted records
+          .map((record) => ({
+            ...record,
+            isNew: false,
+            isModified: false,
+            isDeleted: false,
+            modifiedFields: new Set<string>(),
+            originalName: record.name,
+            originalType: record.type,
+            originalValue: record.value,
         }))
       );
       
@@ -2035,7 +2159,7 @@ const ClusterEditor: React.FC = () => {
                     {/* Actions */}
                     <div className="col-span-1 flex items-center justify-center">
                       <button
-                        onClick={() => deleteRecord(record.id)}
+                        onClick={() => handleDeleteRecord(record.id)}
                         className="p-1 text-red-400 hover:text-red-300 transition-colors"
                         title="Delete record"
                       >
@@ -2211,6 +2335,91 @@ const ClusterEditor: React.FC = () => {
                 documentation
               </a>
               .
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Record Confirmation Modal */}
+      {showDeleteRecordModal && recordToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div 
+            className="p-6 rounded-lg w-full max-w-md border-2 shadow-xl animate-slide-up"
+            style={{ 
+              backgroundColor: 'var(--bg-primary)', 
+              borderColor: 'var(--border-color, #374151)' 
+            }}
+          >
+            <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+              Delete Record
+            </h2>
+
+            <div className="mb-6">
+              <div 
+                className="border-l-4 border-red-500 p-4 mb-4"
+                style={{ backgroundColor: 'var(--warning-bg, #fef2f2)' }}
+              >
+                <div className="flex">
+                  <div className="ml-3">
+                    <p className="text-sm" style={{ color: 'var(--warning-text, #dc2626)' }}>
+                      <strong>Warning:</strong> This action cannot be undone. The record will be permanently deleted from the cluster.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+                Record to delete: <span className="font-semibold font-mono">{recordToDelete.name}</span>
+              </p>
+              <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+                Value: <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded" style={{ backgroundColor: 'var(--bg-secondary)' }}>{recordToDelete.value}</span>
+              </p>
+
+              {/* Skip confirmation checkbox */}
+              <div className="mt-4">
+                <label className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={skipDeleteConfirmation}
+                    onChange={(e) => setSkipDeleteConfirmation(e.target.checked)}
+                    className="mt-1"
+                  />
+                  <div>
+                    <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                      Skip this confirmation for the next 24 hours
+                    </span>
+                    <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+                      Future record deletions will happen immediately without this dialog
+                    </p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowDeleteRecordModal(false);
+                  setRecordToDelete(null);
+                  setSkipDeleteConfirmation(false);
+                }}
+                className="px-4 py-2 border-2 rounded-xl transition-all duration-200 hover:opacity-80"
+                style={{ 
+                  backgroundColor: 'var(--bg-secondary)', 
+                  borderColor: 'var(--border-color, #374151)',
+                  color: 'var(--text-secondary)'
+                }}
+                disabled={deleteRecordLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDeleteRecord}
+                className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={deleteRecordLoading}
+              >
+                {deleteRecordLoading ? 'Deleting...' : 'Delete Record'}
+              </button>
             </div>
           </div>
         </div>
