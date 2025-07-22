@@ -170,7 +170,8 @@ const NLPInterface = () => {
         
         if (Array.isArray(parsedData)) {
           //In the event that the array is empty
-          parsedResponse = parsedData.length > 0 ? parsedData[0] : { summary: 'No response data available' };
+          // parsedResponse = parsedData.length > 0 ? parsedData[0] : { summary: 'No response data available' };
+          parsedResponse = parsedData.length > 0 ? parsedData : { summary: 'No response data available' };
         } else if (parsedData && typeof parsedData === 'object') { //If the response is an object
           parsedResponse = parsedData;
         } else { // If the response is not an array or object
@@ -179,7 +180,7 @@ const NLPInterface = () => {
 
         //Note: Sometimes the API we are using for the NLP response doesnt always return the JSON format we expect.
         //So in the event the summary is'nt present, show a default message
-        if (!parsedResponse.summary) {
+        if (!parsedResponse.summary) {// TODO: summary is fucked up after commenting line 173
           parsedResponse.summary = 'Response received but no summary available';
         }
         
