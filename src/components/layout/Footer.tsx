@@ -55,12 +55,13 @@ const Footer: React.FC = () => {
 
           {/* Center - Copyright */}
           <div className="flex-1 flex justify-center">
-            <p
+            <div
               style={{ color: "var(--text-secondary)" }}
               className="text-sm text-center"
             >
-              © {new Date().getFullYear()} Archetype Dynamics, Inc. All rights reserved.
-            </p>
+              <p className="mb-0">© {new Date().getFullYear()} Archetype Dynamics, Inc.</p>
+              <p className="mb-0">All rights reserved.</p>
+            </div>
           </div>
 
           {/* Right side - Social icons and links */}
