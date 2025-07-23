@@ -15,6 +15,7 @@
 
 import React from "react";
 import { Github, Youtube } from "lucide-react";
+import { FaDiscord } from "react-icons/fa";
 
 const Footer: React.FC = () => {
   return (
@@ -52,6 +53,13 @@ const Footer: React.FC = () => {
               >
                 Pricing
               </a>
+              <a
+                href="/contact"
+                style={{ color: "var(--text-secondary)" }}
+                className="hover:text-white text-sm transition-colors"
+              >
+                Contact
+              </a>
             </div>
           </div>
 
@@ -75,6 +83,16 @@ const Footer: React.FC = () => {
               className="hover:text-white transition-colors"
             >
               <Youtube size={18} />
+            </a>
+            <a
+              href="https://discord.gg/FPd7SmMMmk"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "var(--text-secondary)" }}
+              className="hover:text-white transition-colors"
+              title="Join our Discord community"
+            >
+              <FaDiscord size={18} />
             </a>
             <a
               href="https://github.com/Archetype-Dynamics/OstrichDB.com"

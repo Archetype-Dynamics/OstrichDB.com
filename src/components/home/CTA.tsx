@@ -63,7 +63,7 @@ const CTA: React.FC = () => {
             Start your free project today!
           </p>
           
-          <div className={`flex flex-col sm:flex-row justify-center gap-4 ${
+          <div className={`flex justify-center ${
             getAnimationClasses(isVisible, 'fadeUpScale', 200)
           }`}>
             {isSignedIn ? (
@@ -81,13 +81,6 @@ const CTA: React.FC = () => {
                 </button>
               </SignUpButton>
             )}
-            <a href="#" className="btn btn-outline py-3 px-8 text-base group">
-              <span>Talk to Sales</span>
-              <ArrowRight
-                size={16}
-                className="ml-2 group-hover:translate-x-1 transition-transform"
-              />
-            </a>
           </div>
         </div>
       </div>

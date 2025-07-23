@@ -38,6 +38,7 @@ import { ThemeProvider } from "./context/ThemeContext";
 import NLPInterface from "./components/dashboard/NLP";
 import Contributors from "./pages/contributors";
 import PricingPage from "./pages/pricing";
+import Contact from "./pages/contact";
 
 // Clerk authentication .env variables
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -166,6 +167,23 @@ function App() {
                     <Navbar />
                     <main className="flex-1">
                       <PricingPage />
+                    </main>
+                    <Footer />
+                  </div>
+                } 
+              />
+
+              {/* Contact Page */}
+              <Route 
+                path="/contact" 
+                element={
+                  <div
+                    className="min-h-screen flex flex-col"
+                    style={{ backgroundColor: "var(--bg-primary)" }}
+                  >
+                    <Navbar />
+                    <main className="flex-1">
+                      <Contact />
                     </main>
                     <Footer />
                   </div>
