@@ -1000,11 +1000,11 @@ const CollectionOverview: React.FC = () => {
                 Current Name
               </label>
               <div 
-                className="w-full p-2 border-2 rounded bg-gray-100"
+                className="w-full p-2 border-2 rounded"
                 style={{ 
-                  backgroundColor: 'var(--bg-tertiary, #f3f4f6)', 
-                  borderColor: 'var(--border-color, #374151)',
-                  color: 'var(--text-secondary)'
+                  backgroundColor: 'var(--bg-secondary)', 
+                  borderColor: 'var(--border-color)',
+                  color: 'var(--text-primary)'
                 }}
               >
                 {selectedCluster.name}

@@ -687,45 +687,6 @@ const CollectionsComponent: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mb-4">
-                <label 
-                  className="block text-sm font-medium mb-1" 
-                  style={{ color: 'var(--text-primary)' }}
-                >
-                  Description (Optional)
-                </label>
-                <textarea
-                  name="description"
-                  value={collectionData.description}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border-2 rounded focus:border-sb-amber focus:outline-none transition-colors h-20 resize-none"
-                  style={{ 
-                    backgroundColor: 'var(--bg-secondary)', 
-                    borderColor: 'var(--border-color, #374151)',
-                    color: 'var(--text-primary)'
-                  }}
-                  placeholder="Describe what this collection will store..."
-                  disabled={createLoading}
-                  maxLength={200}
-                />
-              </div>
-
-              <div className="mb-6">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="encryption"
-                    checked={collectionData.encryption}
-                    onChange={handleInputChange}
-                    className="mr-2"
-                    disabled={createLoading}
-                  />
-                  <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
-                    Enable AES-256 encryption (Recommended)
-                  </span>
-                </label>
-              </div>
-
               <div className="flex justify-end gap-3">
                 <button
                   type="button"
@@ -849,11 +810,11 @@ const CollectionsComponent: React.FC = () => {
                 Current Name
               </label>
               <div 
-                className="w-full p-2 border-2 rounded bg-gray-100"
+                className="w-full p-2 border-2 rounded"
                 style={{ 
-                  backgroundColor: 'var(--bg-tertiary, #f3f4f6)', 
-                  borderColor: 'var(--border-color, #374151)',
-                  color: 'var(--text-secondary)'
+                  backgroundColor: 'var(--bg-secondary)', 
+                  borderColor: 'var(--border-color)',
+                  color: 'var(--text-primary)'
                 }}
               >
                 {selectedCollection.name}
