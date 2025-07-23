@@ -1142,29 +1142,26 @@ const ClusterEditor: React.FC = () => {
         const record = payload.records[i];
         
         try {
-          const recordCreationResponse = await fetch(
-            `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(
-              projectName!
-            )}/collections/${encodeURIComponent(
-              collectionName!
-            )}/clusters/${encodeURIComponent(
-              clusterInfo.name
-            )}/records/${encodeURIComponent(
-              record.name
-            )}`,
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-                Accept: "application/json",
-              },
-              body: JSON.stringify({
-                type: record.type,
-                value: formatValueForAPI(record.value, record.type)
-              }),
-            }
-          );
+          const formattedValue = formatValueForAPI(record.value, record.type);
+          const typeParam = record.type;
+          
+          const requestUrl = `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(
+            projectName!
+          )}/collections/${encodeURIComponent(
+            collectionName!
+          )}/clusters/${encodeURIComponent(
+            clusterInfo.name
+          )}/records/${encodeURIComponent(
+            record.name
+          )}?type=${typeParam}&value=${encodeURIComponent(formattedValue)}`;
+
+          const recordCreationResponse = await fetch(requestUrl, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/json",
+            },
+          });
 
           if (!recordCreationResponse.ok) {
             const errorText = await recordCreationResponse.text();
