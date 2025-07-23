@@ -170,12 +170,11 @@ const NLPInterface = () => {
         
         if (Array.isArray(parsedData)) {
           //In the event that the array is empty
-          // parsedResponse = parsedData.length > 0 ? parsedData[0] : { summary: 'No response data available' };
-          parsedResponse = parsedData.length > 0 ? parsedData : { summary: 'No response data available' };
-        } else if (parsedData && typeof parsedData === 'object') { //If the response is an object
-          parsedResponse = parsedData;
-        } else { // If the response is not an array or object
-          parsedResponse = { summary: String(parsedData) || 'Invalid response format' };
+          parsedResponse = parsedData.length > 0 ? parsedData : [{ summary: 'No response data available' }];
+        } else if (parsedData && typeof parsedData === 'object') { //If the response is an object, wrap it in an array
+          parsedResponse = [parsedData];
+        } else { // If the response is not an array or object, wrap it in an array
+          parsedResponse = [{ summary: String(parsedData) || 'Invalid response format' }];
         }  
 
         //Note: Sometimes the API we are using for the NLP response doesnt always return the JSON format we expect.
