@@ -87,6 +87,14 @@ const ClusterEditor: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saveLoading, setSaveLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Helper function to clear messages after timeout
+  const showSuccessMessage = (message: string) => {
+    setError(null); // Clear any existing errors
+    setSuccessMessage(message);
+    setTimeout(() => setSuccessMessage(null), 3000); // Auto-clear after 3 seconds
+  };
 
   // Cluster search/create state
   const [availableClusters, setAvailableClusters] = useState<ClusterInfo[]>([]);
@@ -677,6 +685,8 @@ const ClusterEditor: React.FC = () => {
         return newSet;
       });
       
+      showSuccessMessage(`Record "${record.name}" deleted successfully!`);
+      
       // Close modal and reset state
       setShowDeleteRecordModal(false);
       setRecordToDelete(null);
@@ -1174,6 +1184,9 @@ const ClusterEditor: React.FC = () => {
         }
       }
 
+      // Show success message and navigate
+      showSuccessMessage(`Cluster "${clusterInfo.name}" created successfully with ${payload.records.length} records!`);
+      
       // Navigate to the new cluster's edit page with its real ID
       navigate(
         `/dashboard/projects/${encodeURIComponent(
@@ -1549,6 +1562,7 @@ const ClusterEditor: React.FC = () => {
         }))
       );
       
+      showSuccessMessage("Changes saved successfully!");
       fetchRecordsInCluster();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save changes");
@@ -1649,6 +1663,27 @@ const ClusterEditor: React.FC = () => {
               </div>
               <button onClick={() => setError(null)} className="ml-auto">
                 <X size={16} className="text-red-400 hover:text-red-300" />
+              </button>
+            </div>
+          )}
+
+          {/* Success Message */}
+          {successMessage && (
+            <div className="mt-4 bg-green-900/20 border border-green-500/30 rounded-lg p-4 flex items-start gap-3">
+              <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-2 h-2 bg-white rounded-full"></div>
+              </div>
+              <div>
+                <div className="text-green-400 font-medium">Success</div>
+                <div
+                  className="text-sm"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  {successMessage}
+                </div>
+              </div>
+              <button onClick={() => setSuccessMessage(null)} className="ml-auto">
+                <X size={16} className="text-green-400 hover:text-green-300" />
               </button>
             </div>
           )}
