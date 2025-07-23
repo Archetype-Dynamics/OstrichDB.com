@@ -96,7 +96,7 @@ const NLPInterface = () => {
   const { projectName } = useParams<{ projectName: string }>();
   const navigate = useNavigate();
   const [prompt, setPrompt] = useState('');
-  const [nlpResponse, setNlpResponse] = useState<NLPResponse | null>(null);
+  const [nlpResponse, setNlpResponse] = useState<NLPResponse[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -113,7 +113,7 @@ const NLPInterface = () => {
 
   // Typewriter effect for the summary
   const { displayText: typedSummary, isTyping } = useTypewriter(
-    showConfirmation && nlpResponse?.summary ? nlpResponse.summary : '', 
+    showConfirmation && Array.isArray(nlpResponse) && nlpResponse[0]?.summary ? nlpResponse[0].summary : '', 
     25
   );
 
@@ -166,7 +166,7 @@ const NLPInterface = () => {
         const parsedData = JSON.parse(responseText);
         
         // Handle case where response is an array with the actual response as first element
-        let parsedResponse: NLPResponse;
+        let parsedResponse: NLPResponse[];
         
         if (Array.isArray(parsedData)) {
           //In the event that the array is empty
@@ -179,8 +179,8 @@ const NLPInterface = () => {
 
         //Note: Sometimes the API we are using for the NLP response doesnt always return the JSON format we expect.
         //So in the event the summary is'nt present, show a default message
-        if (!parsedResponse.summary) {// TODO: summary is fucked up after commenting line 173
-          parsedResponse.summary = 'Response received but no summary available';
+        if (!parsedResponse[0].summary) {
+          parsedResponse[0].summary = 'Response received but no summary available';
         }
         
         setNlpResponse(parsedResponse);
