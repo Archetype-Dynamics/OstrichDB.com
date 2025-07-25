@@ -62,7 +62,7 @@ const Hero: React.FC = () => {
               Hierarchical organization • Strong typing • Built-in security • Natural language queries
             </p>
             <p className="text-xl md:text-2xl font-medium">
-              Finally, A database for anyone and everyone.
+              Modern database technology, simplified.
             </p>
           </div>
           
