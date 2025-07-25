@@ -15,3 +15,11 @@ VITE_API_URL=http://localhost:8042
 
 *** Note: Natural language queries are disabled in this version of the software ***
 
+
+## Tech Stack
+- Framework/Library: React
+- Languages: Typescript/Javascript
+- UI: MantineUI, TailwindCSS, Lucide-React(icons)
+- Testing: Jest
+- Package Manager: Yarn
+- Backend: Open-OstrichDB
