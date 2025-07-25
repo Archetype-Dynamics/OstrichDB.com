@@ -314,7 +314,7 @@ export function DashboardSideNavbar() {
           icon={IconBook} 
           label="Documentation" 
           onClick={() => {
-            navigate('/documentation');
+            window.open('https://ostrichdb-docs.vercel.app/', '_blank');
           }}
         />
         <NavbarLink

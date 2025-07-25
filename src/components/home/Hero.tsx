@@ -85,7 +85,7 @@ const Hero: React.FC = () => {
                 </button>
               </SignUpButton>
             )}
-            <a href="#" className="btn btn-outline py-3 px-6 text-base group">
+            <a href="https://ostrichdb-docs.vercel.app/" target="_blank" rel="noopener noreferrer" className="btn btn-outline py-3 px-6 text-base group">
               <span>View Docs</span>
               <ArrowRight
                 size={16}

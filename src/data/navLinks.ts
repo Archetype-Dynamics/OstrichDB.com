@@ -44,7 +44,7 @@ export const navLinks: NavLink[] = [
     dropdownItems: [
       {
         label: "Documentation",
-        href: "#docs",
+        href: "https://ostrichdb-docs.vercel.app/",
         description: "Guides and references",
       },
       {

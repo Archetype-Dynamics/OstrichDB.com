@@ -33,7 +33,9 @@ const Footer: React.FC = () => {
           <div className="flex-1 flex justify-start">
             <div className="flex items-center gap-4">
               <a
-                href="#"
+                href="https://ostrichdb-docs.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
                 style={{ color: "var(--text-secondary)" }}
                 className="hover:text-white text-sm transition-colors"
               >
