@@ -102,40 +102,46 @@ GET .../records?minValue=1000&maxValue=3000`,
     const navigate = useNavigate();
 
     return (
-      <div className="flex flex-col items-center justify-center h-full text-center space-y-4 p-6">
-        <div className="mb-6">
+      <div className="flex flex-col items-center justify-center h-full text-center space-y-6 p-8">
+        <div className="mb-4">
           <h3
-            className="text-xl font-bold mb-2"
+            className="text-2xl font-bold mb-3"
             style={{ color: "var(--text-primary)" }}
           >
             Natural Language Queries
           </h3>
-          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+          <p className="text-base opacity-80" style={{ color: "var(--text-primary)" }}>
             Ask questions in plain English
           </p>
         </div>
 
         <div
-          className="rounded-lg p-4 border border-dashed"
+          className="rounded-lg p-6 border max-w-md w-full"
           style={{
-            backgroundColor: "var(--bg-secondary)",
+            backgroundColor: "var(--bg-primary)",
             borderColor: "var(--border-color)",
           }}
         >
-          <div className="mb-4">
+          <div className="mb-6">
             <p
-              className="text-sm uppercase tracking-wide"
-              style={{ color: "var(--text-secondary)" }}
+              className="text-base mb-2"
+              style={{ color: "var(--text-primary)" }}
             >
-              To Write Natural Language Queries, see pricing...
+              Natural language queries are available with our premium plans.
+            </p>
+            <p
+              className="text-sm opacity-70"
+              style={{ color: "var(--text-primary)" }}
+            >
+              Unlock the power of conversational database interactions.
             </p>
           </div>
 
           <button
             onClick={() => navigate("/pricing")}
-            className="mt-3 bg-sb-amber hover:bg-sb-amber-dark text-white rounded px-4 py-2 text-sm font-medium transition-colors"
+            className="w-full bg-sb-amber hover:bg-sb-amber-dark text-white rounded-lg px-6 py-3 font-medium transition-colors"
           >
-            See Pricing
+            View Pricing Plans
           </button>
         </div>
       </div>

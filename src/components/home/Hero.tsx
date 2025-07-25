@@ -52,15 +52,19 @@ const Hero: React.FC = () => {
             <span className="text-sb-amber block">For Everyone</span>
           </h1>
           
-          <p
+          <div
             style={{ color: "var(--text-primary)" }}
-            className={`text-xl md:text-2xl mb-8 leading-relaxed ${
+            className={`text-lg md:text-xl mb-8 leading-relaxed ${
               getAnimationClasses(isVisible, 'fadeUpScale', 100)
             }`}
           >
-            Hierarchical organization. Strong typing. Built-in security. 
-            Finally, a database that works the way developers think.
-          </p>
+            <p className="mb-4 opacity-80 text-base md:text-lg">
+              Hierarchical organization • Strong typing • Built-in security • Natural language queries
+            </p>
+            <p className="text-xl md:text-2xl font-medium">
+              Finally, A database for anyone and everyone.
+            </p>
+          </div>
           
           <div className={`flex flex-col sm:flex-row justify-center gap-4 ${
             getAnimationClasses(isVisible, 'fadeUpScale', 200)

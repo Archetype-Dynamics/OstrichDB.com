@@ -64,6 +64,6 @@ export const pricingTiers: PricingTier[] = [
       "Private support channels in Discord",
       "Access to OstrichDB Discord community",
     ],
-    cta: "Contact sales",
+    cta: "Contact Us",
   },
 ];
