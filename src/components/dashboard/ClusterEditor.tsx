@@ -1207,7 +1207,7 @@ const ClusterEditor: React.FC = () => {
   const renameRecord = async (oldRecordName: string, newRecordName: string) => {
     try {
       const token = await getToken();
-      const url = `http://localhost:8042/api/v1/projects/${encodeURIComponent(
+      const url = `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(
         projectName!
       )}/collections/${encodeURIComponent(
         collectionName!
@@ -1251,25 +1251,21 @@ const ClusterEditor: React.FC = () => {
   const updateRecordType = async (recordName: string, newType: string) => {
     try {
       const token = await getToken();
-      const url = `http://localhost:8042/api/v1/projects/${encodeURIComponent(
+      const url = `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(
         projectName!
       )}/collections/${encodeURIComponent(
         collectionName!
       )}/clusters/${encodeURIComponent(
         clusterName!
-      )}/records/${encodeURIComponent(recordName)}`;
+      )}/records/${encodeURIComponent(recordName)}?type=${encodeURIComponent(newType)}`;
       
       
       const response = await fetch(url, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify({
-          type: newType
-        }),
       });
 
       const responseText = await response.text();
@@ -1298,26 +1294,23 @@ const ClusterEditor: React.FC = () => {
       
       // Special handling for records with reserved names like "name"
       const encodedRecordName = encodeURIComponent(recordName);
+      const formattedValue = formatValueForAPI(newValue, recordType as RecordDataType);
       
-      const url = `http://localhost:8042/api/v1/projects/${encodeURIComponent(
+      const url = `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(
         projectName!
       )}/collections/${encodeURIComponent(
         collectionName!
       )}/clusters/${encodeURIComponent(
         clusterName!
-      )}/records/${encodedRecordName}`;
+      )}/records/${encodedRecordName}?value=${encodeURIComponent(formattedValue)}`;
       
       
       const response = await fetch(url, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify({
-          value: formatValueForAPI(newValue, recordType as RecordDataType)
-        }),
       });
 
       const responseText = await response.text();
