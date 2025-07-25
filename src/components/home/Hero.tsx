@@ -18,6 +18,7 @@ import { useAuth } from "@clerk/clerk-react";
 import { SignUpButton } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import { useScrollAnimation, getAnimationClasses } from "../../utils/hooks/useScrollAnimation";
+import NLPExampleVideo from "../../videos/NLP_EXAMPLE_USAGE.mov";
 
 const Hero: React.FC = () => {
   const { elementRef, isVisible } = useScrollAnimation({
@@ -66,7 +67,7 @@ const Hero: React.FC = () => {
             </p>
           </div>
           
-          <div className={`flex flex-col sm:flex-row justify-center gap-4 ${
+          <div className={`flex flex-col sm:flex-row justify-center gap-4 mb-12 ${
             getAnimationClasses(isVisible, 'fadeUpScale', 200)
           }`}>
             {isSignedIn ? (
@@ -91,6 +92,24 @@ const Hero: React.FC = () => {
                 className="ml-2 group-hover:translate-x-1 transition-transform"
               />
             </a>
+          </div>
+
+          <div className={`max-w-7xl mx-auto ${
+            getAnimationClasses(isVisible, 'fadeUpScale', 300)
+          }`}>
+            <video 
+              className="w-full h-auto rounded-lg shadow-2xl"
+              controls
+              autoPlay
+              muted
+              loop
+              playsInline
+              style={{ maxHeight: '70vh', minHeight: '400px' }}
+            >
+              <source src={NLPExampleVideo} type="video/mp4" />
+              <source src={NLPExampleVideo} type="video/quicktime" />
+              Your browser does not support the video tag.
+            </video>
           </div>
         </div>
       </div>
