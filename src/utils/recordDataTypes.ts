@@ -245,7 +245,7 @@ function validateArray(value: string, arrayType: RecordDataType): ValidationResu
   try {
     parsedArray = JSON.parse(value);
   } catch {
-    return { isValid: false, errorMessage: 'Value must be a valid JSON array' };
+    return { isValid: false, errorMessage: 'Value must be a valid array eg. [item1, item2, etc]' };
   }
 
   if (!Array.isArray(parsedArray)) {
@@ -492,5 +492,35 @@ export function getInputPropsForType(type: RecordDataType): {
         type: 'text',
         placeholder: getDefaultValue(type)
       };
+  }
+}
+
+/**
+ * Format a record value for API transmission
+ * Handles proper quoting for STRING and []STRING types
+ */
+export function formatValueForAPI(value: string, type: RecordDataType): string {
+  switch (type) {
+    case 'STRING':
+      // Encapsulate STRING values in double quotes
+      return `"${value}"`;
+    
+    case '[]STRING':
+      try {
+        // Parse the array and encapsulate each element in double quotes
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) {
+          const quotedElements = parsed.map(item => `"${String(item)}"`);
+          return `[${quotedElements.join(', ')}]`;
+        }
+        return value;
+      } catch {
+        // If parsing fails, return as-is
+        return value;
+      }
+    
+    default:
+      // For all other types, return value as-is (no additional quoting)
+      return value;
   }
 }

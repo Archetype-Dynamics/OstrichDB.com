@@ -15,6 +15,7 @@
 
 import React from "react";
 import { Github, Youtube } from "lucide-react";
+import { FaDiscord } from "react-icons/fa";
 
 const Footer: React.FC = () => {
   return (
@@ -27,43 +28,73 @@ const Footer: React.FC = () => {
     >
       <div className="w-full max-w-6xl px-4">
         {/* Main footer content */}
-        <div className="flex flex-col md:flex-row justify-between items-center py-6 gap-4">
+        <div className="flex flex-col md:flex-row items-center py-6 gap-4">
           {/* Left side - Documentation and Contributors */}
-          <div className="flex items-center gap-4">
-            <a
-              href="#"
-              style={{ color: "var(--text-secondary)" }}
-              className="hover:text-white text-sm transition-colors"
-            >
-              Documentation
-            </a>
-            <a
-              href="/contributors"
-              style={{ color: "var(--text-secondary)" }}
-              className="hover:text-white text-sm transition-colors"
-            >
-              Contributors
-            </a>
+          <div className="flex-1 flex justify-start">
+            <div className="flex items-center gap-4">
+              <a
+                href="https://ostrichdb-docs.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "var(--text-secondary)" }}
+                className="hover:text-white text-sm transition-colors"
+              >
+                Documentation
+              </a>
+              <a
+                href="/contributors"
+                style={{ color: "var(--text-secondary)" }}
+                className="hover:text-white text-sm transition-colors"
+              >
+                Contributors
+              </a>
+              <a
+                href="/pricing"
+                style={{ color: "var(--text-secondary)" }}
+                className="hover:text-white text-sm transition-colors"
+              >
+                Pricing
+              </a>
+              <a
+                href="/contact"
+                style={{ color: "var(--text-secondary)" }}
+                className="hover:text-white text-sm transition-colors"
+              >
+                Contact
+              </a>
+            </div>
           </div>
 
           {/* Center - Copyright */}
           <div className="flex-1 flex justify-center">
-            <p
+            <div
               style={{ color: "var(--text-secondary)" }}
-              className="text-sm text-center"
+              className="text-sm text-center leading-tight"
             >
-              © {new Date().getFullYear()} Archetype Dynamics, Inc. All rights reserved.
-            </p>
+              <div>© {new Date().getFullYear()} Archetype Dynamics, Inc.</div>
+              <div>All rights reserved.</div>
+            </div>
           </div>
 
           {/* Right side - Social icons and links */}
-          <div className="flex items-center gap-4">
+          <div className="flex-1 flex justify-end">
+            <div className="flex items-center gap-4">
             <a
               href="#"
               style={{ color: "var(--text-secondary)" }}
               className="hover:text-white transition-colors"
             >
               <Youtube size={18} />
+            </a>
+            <a
+              href="https://discord.gg/FPd7SmMMmk"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "var(--text-secondary)" }}
+              className="hover:text-white transition-colors"
+              title="Join our Discord community"
+            >
+              <FaDiscord size={18} />
             </a>
             <a
               href="https://github.com/Archetype-Dynamics/OstrichDB.com"
@@ -88,6 +119,7 @@ const Footer: React.FC = () => {
             >
               SLA
             </a>
+            </div>
           </div>
         </div>
       </div>

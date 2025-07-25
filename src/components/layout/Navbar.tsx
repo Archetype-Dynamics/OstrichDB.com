@@ -16,7 +16,7 @@
 
 import React, { useState, useEffect } from "react";
 import { ChevronDown, Menu, X, Github, ExternalLink, ArrowUp } from "lucide-react";
-import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
+import { useAuth } from "@clerk/clerk-react";
 import { useLocation } from "react-router-dom";
 import AuthButtons from "../common/AuthButtons";
 import ProfileDropdown from "../common/UserProfileDropdown";
@@ -30,7 +30,7 @@ const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   
-  const { isAuthenticated, isLoading } = useKindeAuth();
+  const { isSignedIn, isLoaded } = useAuth();
   const location = useLocation();
 
   // Check if we're in dashboard or any of its sub-routes
@@ -169,15 +169,15 @@ const Navbar: React.FC = () => {
                   </a>
                   
                   {/* Conditional rendering based on authentication */}
-                  {!isLoading && (
-                    isAuthenticated ? <ProfileDropdown /> : <AuthButtons />
+                  {isLoaded && (
+                    isSignedIn ? <ProfileDropdown /> : <AuthButtons />
                   )}
                 </div>
   
                 {/* Mobile Menu Button */}
                 <div className="md:hidden flex items-center space-x-2">
                   <ThemeToggle />
-                  {!isLoading && isAuthenticated && <ProfileDropdown />}
+                  {isLoaded && isSignedIn && <ProfileDropdown />}
                   <button 
                     onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                     style={{ color: 'var(--text-primary)' }}
@@ -255,7 +255,7 @@ const Navbar: React.FC = () => {
               ))}
               
               {/* Mobile Auth Section */}
-              {!isLoading && !isAuthenticated && (
+              {isLoaded && !isSignedIn && (
                 <div 
                   className="pt-4 border-t"
                   style={{ borderColor: 'var(--border-color)' }}

@@ -13,51 +13,76 @@
  * =================================================
  **/
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { FaXTwitter } from "react-icons/fa6";
 import { IoLogoLinkedin } from "react-icons/io5";
 import abLogo from "../images/ab-logo.png";
 import { FaGithub } from "react-icons/fa";
-import { X } from 'lucide-react';
-import { link } from 'fs';
+import { X, BookOpen } from 'lucide-react';
 
 
-const ContributorTooltip = ({ contributor, position }) => {
+const DescriptionModal = ({ contributor, onClose }) => {
+  const modalRef = useRef(null);
   const isFounder = contributor.founderRole;
   
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (modalRef.current && !modalRef.current.contains(event.target)) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [onClose]);
+
   return (
-    <div 
-      className="absolute z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-4 max-w-xs"
-      style={{
-        left: position.x,
-        top: position.y + window.scrollY - 120,
-        transform: 'translateX(-50%)'
-      }}
-    >
-      {isFounder && (
-        <div className="flex items-center gap-2 mb-2">
-          <img src={abLogo} alt="Archetype Dynamics" className="w-4 h-4" />
-          <span className="text-xs font-medium text-gray-600">Founder</span>
-        </div>
-      )}
-      
-      <p className="text-sm text-gray-800 leading-relaxed">
-        {contributor.personalNote}
-      </p>
-      
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div 
-        className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0"
-        style={{
-          borderLeft: '6px solid transparent',
-          borderRight: '6px solid transparent',
-          borderTop: '6px solid white'
+        ref={modalRef}
+        className="border rounded-lg shadow-lg p-6 max-w-md w-full relative"
+        style={{ 
+          backgroundColor: 'var(--bg-primary)', 
+          borderColor: 'var(--border-color, #e5e7eb)' 
         }}
-      />
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 transition-colors"
+          style={{ 
+            color: 'var(--text-secondary)',
+          }}
+          onMouseEnter={(e) => e.target.style.color = 'var(--text-primary)'}
+          onMouseLeave={(e) => e.target.style.color = 'var(--text-secondary)'}
+        >
+          <X size={20} />
+        </button>
+        
+        <div className="flex items-center gap-3 mb-4">
+          <BookOpen size={24} className="text-sb-amber" style={{ color: 'var(--logo-primary)' }} />
+          <h3 className="text-lg font-medium" style={{ color: 'var(--text-primary)' }}>
+            About {contributor.displayName || contributor.name}
+          </h3>
+        </div>
+        
+        {isFounder && (
+          <div className="flex items-center gap-2 mb-3">
+            <img src={abLogo} alt="Archetype Dynamics" className="w-4 h-4" />
+            <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Founder</span>
+          </div>
+        )}
+        
+        <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+          {contributor.personalNote}
+        </p>
+      </div>
     </div>
   );
 };
 
-const ContributorCard = ({ contributor, setHoveredContributor }) => {
+const ContributorCard = ({ contributor, onShowDescription }) => {
   const renderProfileImage = () => {
     if (contributor.useMonogram) {
       return (
@@ -94,21 +119,18 @@ const ContributorCard = ({ contributor, setHoveredContributor }) => {
 
   return (
     <div className="flex flex-col items-center text-center p-6 group">
-      <div 
-        className="relative mb-4"
-        onMouseEnter={(e) => {
-          const rect = e.currentTarget.getBoundingClientRect();
-          setHoveredContributor({
-            data: contributor,
-            position: {
-              x: rect.left + rect.width / 2,
-              y: rect.top
-            }
-          });
-        }}
-        onMouseLeave={() => setHoveredContributor(null)}
-      >
+      <div className="relative mb-4">
         {renderProfileImage()}
+        {contributor.personalNote && (
+          <button
+            onClick={() => onShowDescription(contributor)}
+            className="absolute -bottom-2 -right-2 bg-white border-2 border-gray-300 rounded-full p-2 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
+            style={{ borderColor: 'var(--logo-primary)' }}
+            title="Read about this contributor"
+          >
+            <BookOpen size={16} style={{ color: 'var(--logo-primary)' }} />
+          </button>
+        )}
       </div>
       
       {contributor.githubUsername ? (
@@ -192,7 +214,7 @@ const ContributorCard = ({ contributor, setHoveredContributor }) => {
 };
 
 const Contributors = () => {
-  const [hoveredContributor, setHoveredContributor] = useState(null);
+  const [selectedContributor, setSelectedContributor] = useState(null);
 
   const marshall = {
     name: "Marshall A Burns",
@@ -200,7 +222,7 @@ const Contributors = () => {
     githubUsername: "SchoolyB",
     founderRole: "CEO",
     primaryContribution: "Lead Developer",
-    xLink: "https://x.com/MarshallBCodes",
+    xLink: "https://x.com/TheSegfaultChef",
     linkedinUrl: "https://linkedin.com/in/marshallbcodes",
     personalNote: "Marshall is the creator of OstrichDB, leading the project from concept to execution. He has been instrumental in both frontend development as well as building the OstrichDB engine and backend infrastructure from scratch."
 
@@ -306,7 +328,7 @@ const Contributors = () => {
               <ContributorCard 
                 key={index} 
                 contributor={founder}
-                setHoveredContributor={setHoveredContributor}
+                onShowDescription={setSelectedContributor}
               />
             ))}
           </div>
@@ -327,16 +349,16 @@ const Contributors = () => {
               <ContributorCard 
                 key={index} 
                 contributor={contributor}
-                setHoveredContributor={setHoveredContributor}
+                onShowDescription={setSelectedContributor}
               />
             ))}
           </div>
         </div>
 
-        {hoveredContributor && (
-          <ContributorTooltip 
-            contributor={hoveredContributor.data}
-            position={hoveredContributor.position}
+        {selectedContributor && (
+          <DescriptionModal 
+            contributor={selectedContributor}
+            onClose={() => setSelectedContributor(null)}
           />
         )}
       </div>

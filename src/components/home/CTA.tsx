@@ -16,8 +16,8 @@
 
 import React from "react";
 import { ArrowRight } from "lucide-react";
-import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
-import { RegisterLink } from "@kinde-oss/kinde-auth-react/components";
+import { useAuth } from "@clerk/clerk-react";
+import { SignUpButton } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import { useScrollAnimation, getAnimationClasses } from "../../utils/hooks/useScrollAnimation";
 
@@ -27,14 +27,14 @@ const CTA: React.FC = () => {
     rootMargin: '0px 0px -50px 0px'
   });
 
-  const { isAuthenticated, isLoading } = useKindeAuth();
+  const { isSignedIn, isLoaded } = useAuth();
   const navigate = useNavigate();
 
   const handleGetStarted = () => {
-    if (isAuthenticated) {
+    if (isSignedIn) {
       navigate('/dashboard');
     }
-//If not authenticated, the RegisterLink component will handle the redirection
+//If not authenticated, the SignUpButton component will handle the redirection
   };
 
   return (
@@ -63,29 +63,24 @@ const CTA: React.FC = () => {
             Start your free project today!
           </p>
           
-          <div className={`flex flex-col sm:flex-row justify-center gap-4 ${
+          <div className={`flex justify-center ${
             getAnimationClasses(isVisible, 'fadeUpScale', 200)
           }`}>
-            {isAuthenticated ? (
+            {isSignedIn ? (
               <button 
                 onClick={handleGetStarted}
-                disabled={isLoading}
+                disabled={!isLoaded}
                 className="btn btn-primary py-3 px-8 text-base disabled:opacity-50"
               >
-                {isLoading ? 'Loading...' : 'Get Started Now'}
+                {!isLoaded ? 'Loading...' : 'Get Started Now'}
               </button>
             ) : (
-              <RegisterLink className="btn btn-primary py-3 px-8 text-base">
-                Get Started Now
-              </RegisterLink>
+              <SignUpButton mode="modal">
+                <button className="btn btn-primary py-3 px-8 text-base">
+                  Get Started Now
+                </button>
+              </SignUpButton>
             )}
-            <a href="#" className="btn btn-outline py-3 px-8 text-base group">
-              <span>Talk to Sales</span>
-              <ArrowRight
-                size={16}
-                className="ml-2 group-hover:translate-x-1 transition-transform"
-              />
-            </a>
           </div>
         </div>
       </div>

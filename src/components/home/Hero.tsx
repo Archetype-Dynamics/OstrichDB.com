@@ -14,10 +14,11 @@
 //  **/
 
 import { ArrowRight } from "lucide-react";
-import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
-import { RegisterLink } from "@kinde-oss/kinde-auth-react/components";
+import { useAuth } from "@clerk/clerk-react";
+import { SignUpButton } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import { useScrollAnimation, getAnimationClasses } from "../../utils/hooks/useScrollAnimation";
+import NLPExampleVideo from "../../videos/NLP_EXAMPLE_USAGE.mov";
 
 const Hero: React.FC = () => {
   const { elementRef, isVisible } = useScrollAnimation({
@@ -25,15 +26,15 @@ const Hero: React.FC = () => {
     rootMargin: '0px'
   });
 
-  const { isAuthenticated, isLoading } = useKindeAuth();
+  const { isSignedIn, isLoaded } = useAuth();
   const navigate = useNavigate();
 
   const handleStartBuilding = () => {
-    if (isAuthenticated) {
+    if (isSignedIn) {
       // Redirect authenticated users to projects page
       navigate('/dashboard');
     }
-    // For unauthenticated users, we'll use RegisterLink component instead
+    // For unauthenticated users, we'll use SignUpButton component instead
   };
 
   return (
@@ -52,39 +53,63 @@ const Hero: React.FC = () => {
             <span className="text-sb-amber block">For Everyone</span>
           </h1>
           
-          <p
+          <div
             style={{ color: "var(--text-primary)" }}
-            className={`text-xl md:text-2xl mb-8 leading-relaxed ${
+            className={`text-lg md:text-xl mb-8 leading-relaxed ${
               getAnimationClasses(isVisible, 'fadeUpScale', 100)
             }`}
           >
-            Hierarchical organization. Strong typing. Built-in security. 
-            Finally, a database that works the way developers think.
-          </p>
+            <p className="mb-4 opacity-80 text-base md:text-lg">
+              Hierarchical organization • Strong typing • Built-in security • Natural language queries
+            </p>
+            <p className="text-xl md:text-2xl font-medium">
+              Modern database technology, simplified.
+            </p>
+          </div>
           
-          <div className={`flex flex-col sm:flex-row justify-center gap-4 ${
+          <div className={`flex flex-col sm:flex-row justify-center gap-4 mb-12 ${
             getAnimationClasses(isVisible, 'fadeUpScale', 200)
           }`}>
-            {isAuthenticated ? (
+            {isSignedIn ? (
               <button 
                 onClick={handleStartBuilding}
-                disabled={isLoading}
+                disabled={!isLoaded}
                 className="btn btn-primary py-3 px-6 text-base disabled:opacity-50"
               >
-                {isLoading ? 'Loading...' : 'Start Building Free'}
+                {!isLoaded ? 'Loading...' : 'Start Building Free'}
               </button>
             ) : (
-              <RegisterLink className="btn btn-primary py-3 px-6 text-base">
-                Start Building Free
-              </RegisterLink>
+              <SignUpButton mode="modal">
+                <button className="btn btn-primary py-3 px-6 text-base">
+                  Start Building Free
+                </button>
+              </SignUpButton>
             )}
-            <a href="#" className="btn btn-outline py-3 px-6 text-base group">
+            <a href="https://ostrichdb-docs.vercel.app/" target="_blank" rel="noopener noreferrer" className="btn btn-outline py-3 px-6 text-base group">
               <span>View Docs</span>
               <ArrowRight
                 size={16}
                 className="ml-2 group-hover:translate-x-1 transition-transform"
               />
             </a>
+          </div>
+
+          <div className={`max-w-7xl mx-auto ${
+            getAnimationClasses(isVisible, 'fadeUpScale', 300)
+          }`}>
+            <video 
+              className="w-full h-auto rounded-lg shadow-2xl"
+              controls
+              autoPlay
+              muted
+              loop
+              playsInline
+              style={{ maxHeight: '70vh', minHeight: '400px' }}
+            >
+              <source src={NLPExampleVideo} type="video/mp4" />
+              <source src={NLPExampleVideo} type="video/quicktime" />
+              Your browser does not support the video tag.
+            </video>
           </div>
         </div>
       </div>

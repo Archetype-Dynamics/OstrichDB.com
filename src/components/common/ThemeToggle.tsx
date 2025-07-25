@@ -8,13 +8,20 @@ const ThemeToggle: React.FC = () => {
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded-md hover:bg-sb-dark-accent transition-colors"
+      className="p-2 rounded-md transition-colors"
+      style={{ color: 'var(--text-primary)' }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = 'var(--bg-secondary)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = 'transparent';
+      }}
       aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
     >
       {theme === "dark" ? (
-        <Sun size={20} className="text-sb-cream" />
+        <Sun size={20} style={{ color: 'var(--text-primary)' }} />
       ) : (
-        <Moon size={20} className="text-sb-light hover:text-sb-cream" />
+        <Moon size={20} style={{ color: 'var(--text-primary)' }} />
       )}
     </button>
   );

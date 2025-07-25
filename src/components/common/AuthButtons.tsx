@@ -14,12 +14,7 @@
  **/
 
 import React, { useEffect, useState } from "react";
-import {
-  LoginLink,
-  RegisterLink,
-  LogoutLink,
-} from "@kinde-oss/kinde-auth-react/components";
-import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
+import { SignInButton, SignUpButton, SignOutButton, useAuth, useUser } from "@clerk/clerk-react";
 import UserProfile from "./UserProfile";
 import { API_BASE_URL } from "../../config/api";
 
@@ -32,34 +27,34 @@ const AuthButtons: React.FC<AuthButtonsProps> = ({
   showAvatar = true, 
   showButton = true 
 }) => {
-  const { 
-    isAuthenticated, 
-    isLoading, 
-    getToken, 
-    user 
-  } = useKindeAuth();
+  const { isLoaded, isSignedIn, getToken } = useAuth();
+  const { user } = useUser();
   
   const [backendStatus, setBackendStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
 
+
   //Ensure stable backend connection using JWT
   const testBackendConnection = async () => {
-    if (!isAuthenticated || !user) {
+    if (!isSignedIn || !user) {
       return;
     }
 
+    
     setBackendStatus('loading');
     
     try {
-      // Get the JWT token from Kinde
+      // Get the JWT token from Clerk
       const token = await getToken();
-      
+
       if (!token) {
         throw new Error('Authentication token not available');
       }
+
+      const requestUrl = `${API_BASE_URL}/api/v1/projects`;
       
       //This should be fine here since once authenticated, the user will be redirected to their Project Dashboard page, if not then will re-work this
-      const response = await fetch(`${API_BASE_URL}/api/v1/projects`, {
+      const response = await fetch(requestUrl, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -68,10 +63,14 @@ const AuthButtons: React.FC<AuthButtonsProps> = ({
         },
       });
 
+
       if (!response.ok) {
-        throw new Error(`Backend connection failed ${response.status}`);
+        const responseText = await response.text();
+        throw new Error(`Backend connection failed ${response.status}: ${responseText}`);
       }
 
+      await response.json();
+      
       setBackendStatus('success');
       setErrorMessage('');
 
@@ -84,17 +83,16 @@ const AuthButtons: React.FC<AuthButtonsProps> = ({
 
   //Connect to backend when user becomes authenticated. 1 second delay to avoid overwhelming the backend
   useEffect(() => {
-    if (isAuthenticated && !isLoading && user) {
-      
+    if (isSignedIn && isLoaded && user) {
       const timer = setTimeout(() => {
         testBackendConnection();
       }, 1000);
       return () => clearTimeout(timer); // Cleanup the timer on unmount or re-render
     }
-  }, [isAuthenticated, isLoading, user]);
+  }, [isSignedIn, isLoaded, user, testBackendConnection]);
 
   // Show loading state
-  if (isLoading) {
+  if (!isLoaded) {
     return (
       <div className="flex items-center space-x-2">
         <div className="animate-pulse">
@@ -120,7 +118,7 @@ const AuthButtons: React.FC<AuthButtonsProps> = ({
 
   return (
     <div className="flex items-center space-x-4">
-      {isAuthenticated ? (
+      {isSignedIn ? (
         <>
           {/* Backend Status Indicator Only shows when user is authenticated */} 
           <div className="flex items-center space-x-2">
@@ -135,23 +133,29 @@ const AuthButtons: React.FC<AuthButtonsProps> = ({
               />
           </div>       
           
-          <LogoutLink className="btn btn-outline text-sm">
-            Logout
-          </LogoutLink>
+          <SignOutButton>
+            <button className="btn btn-outline text-sm">
+              Logout
+            </button>
+          </SignOutButton>
           
           {showAvatar && showButton && <UserProfile />}
         </>
       ) : (
         <>
-          {/* AUTH kinde hosted login component */}
-          <LoginLink className="btn btn-outline text-sm" type="button">
-            Sign In
-          </LoginLink>
+          {/* AUTH Clerk hosted login component */}
+          <SignInButton mode="modal">
+            <button className="btn btn-outline text-sm" type="button">
+              Sign In
+            </button>
+          </SignInButton>
 
-          {/* AUTH kinde hosted register component */}
-          <RegisterLink className="btn btn-primary text-sm" type="button">
-            Start Free
-          </RegisterLink>
+          {/* AUTH Clerk hosted register component */}
+          <SignUpButton mode="modal">
+            <button className="btn btn-primary text-sm" type="button">
+              Start Free
+            </button>
+          </SignUpButton>
         </>
       )}
     </div>

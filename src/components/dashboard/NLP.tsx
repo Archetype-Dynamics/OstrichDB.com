@@ -14,7 +14,7 @@
  
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, MessageSquare, CheckCircle, AlertTriangle, Loader2, X, Lightbulb, ArrowLeft, HelpCircle, Eye, Code } from 'lucide-react';
-import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../../config/api';
 
@@ -96,7 +96,7 @@ const NLPInterface = () => {
   const { projectName } = useParams<{ projectName: string }>();
   const navigate = useNavigate();
   const [prompt, setPrompt] = useState('');
-  const [nlpResponse, setNlpResponse] = useState<NLPResponse | null>(null);
+  const [nlpResponse, setNlpResponse] = useState<NLPResponse[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -108,11 +108,12 @@ const NLPInterface = () => {
   const [confirmationMessage, setConfirmationMessage] = useState('');
   const [showConfirmationMessage, setShowConfirmationMessage] = useState(false);
   
-  const { getToken, user, isAuthenticated } = useKindeAuth();
+  const { getToken, isSignedIn } = useAuth();
+  const { user } = useUser();
 
   // Typewriter effect for the summary
   const { displayText: typedSummary, isTyping } = useTypewriter(
-    showConfirmation && nlpResponse?.summary ? nlpResponse.summary : '', 
+    showConfirmation && Array.isArray(nlpResponse) && nlpResponse[0]?.summary ? nlpResponse[0].summary : '', 
     25
   );
 
@@ -124,8 +125,8 @@ const NLPInterface = () => {
 
   // Set greeting when component mounts
   useEffect(() => {
-    if (user?.givenName) {
-      setGreeting(getRandomGreeting(user.givenName));
+    if (user?.firstName) {
+      setGreeting(getRandomGreeting(user.firstName));
     }
   }, [user]);
 
@@ -165,21 +166,21 @@ const NLPInterface = () => {
         const parsedData = JSON.parse(responseText);
         
         // Handle case where response is an array with the actual response as first element
-        let parsedResponse: NLPResponse;
+        let parsedResponse: NLPResponse[];
         
         if (Array.isArray(parsedData)) {
           //In the event that the array is empty
-          parsedResponse = parsedData.length > 0 ? parsedData[0] : { summary: 'No response data available' };
-        } else if (parsedData && typeof parsedData === 'object') { //If the response is an object
-          parsedResponse = parsedData;
-        } else { // If the response is not an array or object
-          parsedResponse = { summary: String(parsedData) || 'Invalid response format' };
+          parsedResponse = parsedData.length > 0 ? parsedData : [{ summary: 'No response data available' }];
+        } else if (parsedData && typeof parsedData === 'object') { //If the response is an object, wrap it in an array
+          parsedResponse = [parsedData];
+        } else { // If the response is not an array or object, wrap it in an array
+          parsedResponse = [{ summary: String(parsedData) || 'Invalid response format' }];
         }  
 
         //Note: Sometimes the API we are using for the NLP response doesnt always return the JSON format we expect.
         //So in the event the summary is'nt present, show a default message
-        if (!parsedResponse.summary) {
-          parsedResponse.summary = 'Response received but no summary available';
+        if (!parsedResponse[0].summary) {
+          parsedResponse[0].summary = 'Response received but no summary available';
         }
         
         setNlpResponse(parsedResponse);

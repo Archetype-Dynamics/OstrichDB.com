@@ -14,12 +14,12 @@
 
 // buttons above the footer
 
-import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
+import { useAuth } from "@clerk/clerk-react";
 import AuthButtons from "../common/AuthButtons";
 
 const GetStarted = () => {
-  const { isAuthenticated } = useKindeAuth();
-  if (isAuthenticated) return null;
+  const { isSignedIn } = useAuth();
+  if (isSignedIn) return null;
 
   return (
     <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">

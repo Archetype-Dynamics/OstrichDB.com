@@ -13,16 +13,19 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
-import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
+import { useAuth } from '@clerk/clerk-react';
 import {
   IconHome2,
   IconUser,
   IconBook,
-  IconUsers,
+  // IconUsers, // Commented out - collaborators feature disabled
   IconLogout,
   IconBraces,
   IconCode,
   IconMessage,
+  IconFolders,
+  IconDatabase,
+  IconTable,
 } from '@tabler/icons-react';
 import { Center, Stack, Tooltip, UnstyledButton } from '@mantine/core';
 import classes from './DashboardSideNavbar.module.css';
@@ -45,22 +48,11 @@ function NavbarLink({ icon: Icon, label, active, onClick, customElement }: Navba
   );
 }
 
-// Custom Project Status Component
-function ProjectStatusIndicator() {
-  return (
-    <div className="flex items-center justify-center">
-      <div className="relative">
-        <div className="w-5 h-5 bg-gray-600 rounded border-2 border-gray-400"></div>
-        <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border border-gray-800"></div>
-      </div>
-    </div>
-  );
-}
 
 export function DashboardSideNavbar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useKindeAuth();
+  const { signOut } = useAuth();
   
 
   const { projectName, collectionName } = useParams<{
@@ -127,14 +119,14 @@ export function DashboardSideNavbar() {
     
       if (path.includes('/account')) {
         setActive(0);
-      } else if (path.includes('/collaborators')) {
-        setActive(2);
+      // } else if (path.includes('/collaborators')) {
+      //   setActive(2); // Commented out - collaborators feature disabled
       } else if (path.includes('/documentation')) {
-        setActive(5); // Adjusted for additional tools
+        setActive(4); // Adjusted for additional tools
       } else if (currentTool === 'manual-query') {
-        setActive(3);
+        setActive(2);
       } else if (currentTool === 'nlp') {
-        setActive(4);
+        setActive(3);
       } else {
         setActive(0); // Default to Home
       }
@@ -142,16 +134,16 @@ export function DashboardSideNavbar() {
 
       if (path.includes('/account')) {
         setActive(0);
-      } else if (path.includes('/collaborators')) {
-        setActive(2);
+      // } else if (path.includes('/collaborators')) {
+      //   setActive(3); // Commented out - collaborators feature disabled
       } else if (path.includes('/documentation')) {
-        setActive(6); 
+        setActive(7); 
       } else if (currentTool === 'cluster-editor') {
-        setActive(3);
-      } else if (currentTool === 'manual-query') {
         setActive(4);
-      } else if (currentTool === 'nlp') {
+      } else if (currentTool === 'manual-query') {
         setActive(5);
+      } else if (currentTool === 'nlp') {
+        setActive(6);
       } else {
         setActive(0); // Default to Home
       }
@@ -176,27 +168,43 @@ export function DashboardSideNavbar() {
       return [
         ...baseNavigation,
         { 
-          icon: IconHome2, // Will use custom element
-          label: `Project Status - ${currentProjectName}`,
+          icon: IconFolders, 
+          label: 'Back to Projects',
           onClick: () => {
+            navigate('/dashboard');
             setActive(1);
-          },
-          customElement: <ProjectStatusIndicator />
+          }
         },
         { 
-          icon: IconUsers, 
-          label: 'Collaborators',
+          icon: IconDatabase, 
+          label: 'Back to Collections',
           onClick: () => {
+            navigate(`/dashboard/projects/${encodeURIComponent(currentProjectName!)}/collections`);
             setActive(2);
           }
         },
+        { 
+          icon: IconTable, 
+          label: 'Back to Collection Overview',
+          onClick: () => {
+            navigate(`/dashboard/projects/${encodeURIComponent(currentProjectName!)}/collections/${encodeURIComponent(collectionName!)}`);
+            setActive(3);
+          }
+        },
+        // { 
+        //   icon: IconUsers, 
+        //   label: 'Collaborators',
+        //   onClick: () => {
+        //     setActive(3);
+        //   }
+        // }, // Commented out - collaborators feature disabled
       
         { 
           icon: IconBraces, 
           label: 'Cluster Editor',
           onClick: () => {
             navigate(`/dashboard/projects/${encodeURIComponent(currentProjectName!)}/collections/${encodeURIComponent(collectionName!)}/cluster-editor`);
-            setActive(3);
+            setActive(4);
           }
         },
         { 
@@ -204,7 +212,7 @@ export function DashboardSideNavbar() {
           label: 'Manual Query Editor',
           onClick: () => {
             navigate(`/dashboard/projects/${encodeURIComponent(currentProjectName!)}/collections/${encodeURIComponent(collectionName!)}/manual-query`);
-            setActive(4);
+            setActive(5);
           }
         },
         { 
@@ -212,7 +220,7 @@ export function DashboardSideNavbar() {
           label: 'Natural Language Query Processor',
           onClick: () => {
             navigate(`/dashboard/projects/${encodeURIComponent(currentProjectName!)}/nlp`);
-            setActive(5);
+            setActive(6);
           }
         }
       ];
@@ -221,27 +229,27 @@ export function DashboardSideNavbar() {
       return [
         ...baseNavigation,
         { 
-          icon: IconHome2,
-          label: `Project Status - ${currentProjectName}`,
+          icon: IconFolders, 
+          label: 'Back to Projects',
           onClick: () => {
+            navigate('/dashboard');
             setActive(1);
-          },
-          customElement: <ProjectStatusIndicator />
-        },
-        { 
-          icon: IconUsers, 
-          label: 'Collaborators',
-          onClick: () => {
-            setActive(2);
           }
         },
+        // { 
+        //   icon: IconUsers, 
+        //   label: 'Collaborators',
+        //   onClick: () => {
+        //     setActive(2);
+        //   }
+        // }, // Commented out - collaborators feature disabled
     
         { 
           icon: IconCode, 
           label: 'Manual Query Editor',
           onClick: () => {
             navigate(`/dashboard/projects/${encodeURIComponent(currentProjectName!)}/manual-query`);
-            setActive(3);
+            setActive(2);
           }
         },
         { 
@@ -249,7 +257,7 @@ export function DashboardSideNavbar() {
           label: 'Natural Language Query Processor',
           onClick: () => {
             navigate(`/dashboard/projects/${encodeURIComponent(currentProjectName!)}/nlp`);
-            setActive(4);
+            setActive(3);
           }
         }
       ];
@@ -268,7 +276,7 @@ export function DashboardSideNavbar() {
   ));
 
   const handleLogout = () => {
-    logout();
+    signOut();
   };
 
   return (
@@ -306,7 +314,7 @@ export function DashboardSideNavbar() {
           icon={IconBook} 
           label="Documentation" 
           onClick={() => {
-            navigate('/documentation');
+            window.open('https://ostrichdb-docs.vercel.app/', '_blank');
           }}
         />
         <NavbarLink

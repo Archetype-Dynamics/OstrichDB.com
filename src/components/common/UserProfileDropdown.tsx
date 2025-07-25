@@ -13,24 +13,14 @@
  **/
 
 import React, { useState, useRef, useEffect } from "react";
-import { Settings, LogOut, Folder, Archive } from "lucide-react";
-import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
-
-interface User {
-  picture?: string;
-  givenName?: string;
-  familyName?: string;
-  email?: string;
-}
+import { Settings, LogOut, Folder } from "lucide-react";
+import { useAuth, useUser } from "@clerk/clerk-react";
 
 const ProfileDropdown: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { user, isAuthenticated, logout } = useKindeAuth();
-
-  if (!isAuthenticated || !user) {
-    return null;
-  }
+  const { isSignedIn, signOut } = useAuth();
+  const { user } = useUser();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -59,9 +49,13 @@ const ProfileDropdown: React.FC = () => {
     return () => document.removeEventListener("keydown", handleEscape);
   }, []);
 
+  if (!isSignedIn || !user) {
+    return null;
+  }
+
   const handleLogout = () => {
     setIsOpen(false);
-    logout();
+    signOut();
   };
 
   const handleMenuClick = (action: string) => {
@@ -91,15 +85,9 @@ const ProfileDropdown: React.FC = () => {
   };
 
   // Get user info with fallbacks
-  const userInfo = user as User | null;
-  const displayName =
-    userInfo?.givenName && userInfo?.familyName
-      ? `${userInfo.givenName} ${userInfo.familyName}`
-      : userInfo?.givenName || "User";
-
-  const userEmail = userInfo?.email || "";
-  const profilePhoto =
-    userInfo?.picture ||
+  const displayName = user?.fullName || user?.firstName || "User";
+  const userEmail = user?.primaryEmailAddress?.emailAddress || "";
+  const profilePhoto = user?.imageUrl || 
     `https://ui-avatars.com/api/?name=${encodeURIComponent(
       displayName
     )}&background=random`;

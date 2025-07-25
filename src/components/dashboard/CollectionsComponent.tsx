@@ -13,9 +13,9 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import { API_BASE_URL } from '../../config/api';
-import { ArrowLeft, Database, Plus, Filter, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Database, Plus, Filter, ChevronDown, MoreVertical, Edit2, Trash2 } from 'lucide-react';
 
 interface Collection {
   name: string;
@@ -57,7 +57,8 @@ const formatDate = (dateString: string): string => {
 const CollectionsComponent: React.FC = () => {
   const navigate = useNavigate();
   const { projectName } = useParams<{ projectName: string }>();
-  const { getToken, user, isAuthenticated } = useKindeAuth();
+  const { getToken, isSignedIn } = useAuth();
+  const { user } = useUser();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [collections, setCollections] = useState<Collection[]>([]);
@@ -71,6 +72,16 @@ const CollectionsComponent: React.FC = () => {
     description: '',
     encryption: true
   });
+  
+  // Collection options and rename/delete state
+  const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
+  const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
+  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [renameValue, setRenameValue] = useState('');
+  const [deleteConfirmationValue, setDeleteConfirmationValue] = useState('');
+  const [renameLoading, setRenameLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const sortOptions = [
     { value: 'alphabetical', label: 'Alphabetical (A-Z)' },
@@ -159,10 +170,10 @@ const CollectionsComponent: React.FC = () => {
   }, [collections, sortBy]);
 
   useEffect(() => {
-    if (isAuthenticated && user && projectName) {
+    if (isSignedIn && user && projectName) {
       fetchCollections();
     }
-  }, [isAuthenticated, user, projectName]);
+  }, [isSignedIn, user, projectName]);
 
   const fetchCollections = async () => {
 
@@ -325,6 +336,137 @@ const CollectionsComponent: React.FC = () => {
     setIsFilterOpen(false);
   };
 
+  // Collection options modal functions
+  const openCollectionOptionsModal = (collection: Collection, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent collection click when clicking options
+    setSelectedCollection(collection);
+    setIsOptionsModalOpen(true);
+  };
+
+  const openRenameModal = () => {
+    if (selectedCollection) {
+      setRenameValue(selectedCollection.name);
+      setIsOptionsModalOpen(false);
+      setIsRenameModalOpen(true);
+    }
+  };
+
+  const openDeleteModal = () => {
+    setDeleteConfirmationValue('');
+    setIsOptionsModalOpen(false);
+    setIsDeleteModalOpen(true);
+  };
+
+  // Handle collection rename
+  const handleRenameCollection = async () => {
+    if (!selectedCollection || !renameValue.trim()) return;
+
+    // Validate new collection name
+    const nameError = validateCollectionName(renameValue);
+    if (nameError) {
+      setError(nameError);
+      return;
+    }
+
+    // Check if new name is different from current name
+    if (renameValue === selectedCollection.name) {
+      setError('New collection name must be different from the current name');
+      return;
+    }
+
+    // Check for duplicate names
+    if (isDuplicateCollectionName(renameValue)) {
+      setError('A collection with this name already exists');
+      return;
+    }
+
+    try {
+      setRenameLoading(true);
+      setError(null);
+
+      const token = await getToken();
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(projectName!)}/collections/${encodeURIComponent(selectedCollection.name)}?rename=${encodeURIComponent(renameValue)}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          }
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to rename collection: ${errorText}`);
+      }
+
+      // Success - refresh collections and close modal
+      await fetchCollections();
+      setIsRenameModalOpen(false);
+      setRenameValue('');
+      setSelectedCollection(null);
+
+    } catch (err) {
+      console.error('Error renaming collection:', err);
+      setError(err instanceof Error ? err.message : 'Failed to rename collection');
+    } finally {
+      setRenameLoading(false);
+    }
+  };
+
+  // Handle collection delete
+  const handleDeleteCollection = async () => {
+    if (!selectedCollection || deleteConfirmationValue !== selectedCollection.name) {
+      setError('Please type the exact collection name to confirm deletion');
+      return;
+    }
+
+    try {
+      setDeleteLoading(true);
+      setError(null);
+
+      const token = await getToken();
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(projectName!)}/collections/${encodeURIComponent(selectedCollection.name)}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          }
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to delete collection: ${errorText}`);
+      }
+
+      // Success - refresh collections and close modal
+      await fetchCollections();
+      setIsDeleteModalOpen(false);
+      setDeleteConfirmationValue('');
+      setSelectedCollection(null);
+
+    } catch (err) {
+      console.error('Error deleting collection:', err);
+      setError(err instanceof Error ? err.message : 'Failed to delete collection');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center mt-40">
@@ -435,7 +577,16 @@ const CollectionsComponent: React.FC = () => {
                     {truncateCollectionName(collection.name || 'Unnamed Collection')}
                   </h3>
                 </div>
-                <div className="w-3 h-3 bg-green-500 rounded-full flex-shrink-0" title="Active"></div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full flex-shrink-0" title="Active"></div>
+                  <button
+                    onClick={(e) => openCollectionOptionsModal(collection, e)}
+                    className="p-1 rounded hover:bg-gray-300 hover:bg-opacity-20 transition-colors flex-shrink-0"
+                    title="Collection options"
+                  >
+                    <MoreVertical size={16} style={{ color: 'var(--text-secondary)' }} />
+                  </button>
+                </div>
               </div>
               
               {collection.description && (
@@ -536,45 +687,6 @@ const CollectionsComponent: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mb-4">
-                <label 
-                  className="block text-sm font-medium mb-1" 
-                  style={{ color: 'var(--text-primary)' }}
-                >
-                  Description (Optional)
-                </label>
-                <textarea
-                  name="description"
-                  value={collectionData.description}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border-2 rounded focus:border-sb-amber focus:outline-none transition-colors h-20 resize-none"
-                  style={{ 
-                    backgroundColor: 'var(--bg-secondary)', 
-                    borderColor: 'var(--border-color, #374151)',
-                    color: 'var(--text-primary)'
-                  }}
-                  placeholder="Describe what this collection will store..."
-                  disabled={createLoading}
-                  maxLength={200}
-                />
-              </div>
-
-              <div className="mb-6">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="encryption"
-                    checked={collectionData.encryption}
-                    onChange={handleInputChange}
-                    className="mr-2"
-                    disabled={createLoading}
-                  />
-                  <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
-                    Enable AES-256 encryption (Recommended)
-                  </span>
-                </label>
-              </div>
-
               <div className="flex justify-end gap-3">
                 <button
                   type="button"
@@ -602,6 +714,267 @@ const CollectionsComponent: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Collection Options Modal */}
+      {isOptionsModalOpen && selectedCollection && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div 
+            className="p-6 rounded-lg w-full max-w-sm border-2 shadow-xl animate-slide-up"
+            style={{ 
+              backgroundColor: 'var(--bg-primary)', 
+              borderColor: 'var(--border-color, #374151)' 
+            }}
+          >
+            <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+              Collection Options
+            </h2>
+            <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
+              "{selectedCollection.name}"
+            </p>
+
+            <div className="space-y-3">
+              <button
+                onClick={openRenameModal}
+                className="w-full flex items-center gap-3 px-4 py-3 border-2 border-gray-400 rounded-lg hover:border-sb-amber hover:bg-white hover:text-black transition-all duration-200"
+                style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+              >
+                <Edit2 size={20} className="text-sb-amber" />
+                <span>Rename Collection</span>
+              </button>
+              
+              <button
+                onClick={openDeleteModal}
+                className="w-full flex items-center gap-3 px-4 py-3 border-2 border-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all duration-200"
+                style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+              >
+                <Trash2 size={20} className="text-red-500" />
+                <span>Delete Collection</span>
+              </button>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => {
+                  setIsOptionsModalOpen(false);
+                  setSelectedCollection(null);
+                }}
+                className="px-4 py-2 border-2 rounded-xl transition-all duration-200 hover:opacity-80"
+                style={{ 
+                  backgroundColor: 'var(--bg-secondary)', 
+                  borderColor: 'var(--border-color, #374151)',
+                  color: 'var(--text-secondary)'
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rename Collection Modal */}
+      {isRenameModalOpen && selectedCollection && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div 
+            className="p-6 rounded-lg w-full max-w-md border-2 shadow-xl animate-slide-up"
+            style={{ 
+              backgroundColor: 'var(--bg-primary)', 
+              borderColor: 'var(--border-color, #374151)' 
+            }}
+          >
+            <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+              Rename Collection
+            </h2>
+
+            {error && (
+              <div 
+                className="border px-4 py-3 rounded mb-4"
+                style={{ 
+                  backgroundColor: 'var(--error-bg, #fef2f2)', 
+                  borderColor: 'var(--error-border, #fca5a5)',
+                  color: 'var(--error-text, #dc2626)'
+                }}
+              >
+                {error}
+              </div>
+            )}
+
+            <div className="mb-4">
+              <label 
+                className="block text-sm font-medium mb-1" 
+                style={{ color: 'var(--text-primary)' }}
+              >
+                Current Name
+              </label>
+              <div 
+                className="w-full p-2 border-2 rounded"
+                style={{ 
+                  backgroundColor: 'var(--bg-secondary)', 
+                  borderColor: 'var(--border-color)',
+                  color: 'var(--text-primary)'
+                }}
+              >
+                {selectedCollection.name}
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <label 
+                className="block text-sm font-medium mb-1" 
+                style={{ color: 'var(--text-primary)' }}
+              >
+                New Collection Name *
+              </label>
+              <input
+                type="text"
+                value={renameValue}
+                onChange={(e) => {
+                  setRenameValue(e.target.value);
+                  if (error) setError(null);
+                }}
+                className="w-full p-2 border-2 rounded focus:border-sb-amber focus:outline-none transition-colors"
+                style={{ 
+                  backgroundColor: 'var(--bg-secondary)', 
+                  borderColor: 'var(--border-color, #374151)',
+                  color: 'var(--text-primary)'
+                }}
+                placeholder="new-collection-name"
+                disabled={renameLoading}
+                maxLength={32}
+              />
+              <div className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+                {renameValue.length}/32 characters • Only letters, numbers, underscores (_), and hyphens (-) allowed
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setIsRenameModalOpen(false);
+                  setError(null);
+                  setRenameValue('');
+                  setSelectedCollection(null);
+                }}
+                className="px-4 py-2 border-2 rounded-xl transition-all duration-200 hover:opacity-80"
+                style={{ 
+                  backgroundColor: 'var(--bg-secondary)', 
+                  borderColor: 'var(--border-color, #374151)',
+                  color: 'var(--text-secondary)'
+                }}
+                disabled={renameLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRenameCollection}
+                className="px-6 py-2 bg-sb-amber hover:bg-sb-amber-dark text-white rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={renameLoading || !renameValue.trim() || validateCollectionName(renameValue) !== null || renameValue === selectedCollection.name}
+              >
+                {renameLoading ? 'Renaming...' : 'Rename Collection'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Collection Modal */}
+      {isDeleteModalOpen && selectedCollection && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div 
+            className="p-6 rounded-lg w-full max-w-md border-2 shadow-xl animate-slide-up"
+            style={{ 
+              backgroundColor: 'var(--bg-primary)', 
+              borderColor: 'var(--border-color, #374151)' 
+            }}
+          >
+            <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+              Delete Collection
+            </h2>
+
+            <div className="mb-6">
+              <div 
+                className="border-l-4 border-red-500 p-4 mb-4"
+                style={{ backgroundColor: 'var(--warning-bg, #fef2f2)' }}
+              >
+                <div className="flex">
+                  <div className="ml-3">
+                    <p className="text-sm" style={{ color: 'var(--warning-text, #dc2626)' }}>
+                      <strong>Warning:</strong> This action cannot be undone. All clusters and records in this collection will be permanently deleted.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+                Collection to delete: <span className="font-semibold">{selectedCollection.name}</span>
+              </p>
+
+              {error && (
+                <div 
+                  className="border px-4 py-3 rounded mb-4"
+                  style={{ 
+                    backgroundColor: 'var(--error-bg, #fef2f2)', 
+                    borderColor: 'var(--error-border, #fca5a5)',
+                    color: 'var(--error-text, #dc2626)'
+                  }}
+                >
+                  {error}
+                </div>
+              )}
+
+              <label 
+                className="block text-sm font-medium mb-1" 
+                style={{ color: 'var(--text-primary)' }}
+              >
+                Type "{selectedCollection.name}" to confirm deletion *
+              </label>
+              <input
+                type="text"
+                value={deleteConfirmationValue}
+                onChange={(e) => {
+                  setDeleteConfirmationValue(e.target.value);
+                  if (error) setError(null);
+                }}
+                className="w-full p-2 border-2 rounded focus:border-red-500 focus:outline-none transition-colors"
+                style={{ 
+                  backgroundColor: 'var(--bg-secondary)', 
+                  borderColor: 'var(--border-color, #374151)',
+                  color: 'var(--text-primary)'
+                }}
+                placeholder="Type collection name here..."
+                disabled={deleteLoading}
+              />
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setError(null);
+                  setDeleteConfirmationValue('');
+                  setSelectedCollection(null);
+                }}
+                className="px-4 py-2 border-2 rounded-xl transition-all duration-200 hover:opacity-80"
+                style={{ 
+                  backgroundColor: 'var(--bg-secondary)', 
+                  borderColor: 'var(--border-color, #374151)',
+                  color: 'var(--text-secondary)'
+                }}
+                disabled={deleteLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteCollection}
+                className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={deleteLoading || deleteConfirmationValue !== selectedCollection.name}
+              >
+                {deleteLoading ? 'Deleting...' : 'Delete Collection'}
+              </button>
+            </div>
           </div>
         </div>
       )}

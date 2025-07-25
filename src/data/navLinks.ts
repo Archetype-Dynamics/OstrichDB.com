@@ -22,7 +22,7 @@ export const navLinks: NavLink[] = [
     dropdownItems: [
       {
         label: "Database",
-        href: "#database",
+        href: "https://github.com/Archetype-Dynamics/Open-OstrichDB",
         description: "Custom built NoSQL/NoJSON database built in Odin",
       },
       {
@@ -44,7 +44,7 @@ export const navLinks: NavLink[] = [
     dropdownItems: [
       {
         label: "Documentation",
-        href: "#docs",
+        href: "https://ostrichdb-docs.vercel.app/",
         description: "Guides and references",
       },
       {

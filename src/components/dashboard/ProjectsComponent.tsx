@@ -15,9 +15,9 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import { API_BASE_URL } from '../../config/api';
-import { Filter, ChevronDown, FolderOpen } from 'lucide-react';
+import { Filter, ChevronDown, FolderOpen, MoreVertical, Edit2, Trash2, HelpCircle, Lightbulb, Target, BookOpen, Database } from 'lucide-react';
 
 interface Project {
   name: string;
@@ -32,7 +32,7 @@ interface Project {
 
 interface ProjectData {
   name: string;
-  collaborators: string; // Not yet implemented in the backend, just a placeholder for now
+  // collaborators: string; // Not yet implemented in the backend, just a placeholder for now - COMMENTED OUT
   password: string; // Not yet implemented in the backend, just a placeholder for now
 }
 
@@ -45,20 +45,32 @@ interface Collection {
 type SortOption = 'alphabetical' | 'size' | 'dateModified' | 'collectionCount';
 
 const ProjectsComponent: React.FC = () => {
+  
   const navigate = useNavigate();
-  const { getToken, user, isAuthenticated } = useKindeAuth();
+  const { getToken, isSignedIn } = useAuth();
+  const { user } = useUser();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  
   const [error, setError] = useState<string | null>(null);
   const [createLoading, setCreateLoading] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('alphabetical');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [projectData, setProjectData] = useState<ProjectData>({
     name: '',
-    collaborators: '',
+    // collaborators: '', // COMMENTED OUT - collaborators feature disabled
     password: ''
   });
+  const [isProjectOptionsModalOpen, setIsProjectOptionsModalOpen] = useState(false);
+  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+  const [renameLoading, setRenameLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteConfirmationValue, setDeleteConfirmationValue] = useState('');
 
   const sortOptions = [
     { value: 'alphabetical', label: 'Alphabetical (A-Z)' },
@@ -143,10 +155,12 @@ const ProjectsComponent: React.FC = () => {
   }, [projects, sortBy]);
 
   useEffect(() => {
-    if (isAuthenticated && user) {
+    
+    if (isSignedIn && user) {
       fetchProjects();
+    } else {
     }
-  }, [isAuthenticated, user]);
+  }, [isSignedIn, user]);
 
   const fetchProjectMetadata = async (projectName: string, token: string) => {
     try {
@@ -164,7 +178,6 @@ const ProjectsComponent: React.FC = () => {
       );
 
       if (!collectionsResponse.ok) {
-        console.warn(`Failed to fetch collections for project ${projectName}`);
         return {
           collectionCount: 0,
           lastModified: 'Unknown',
@@ -211,7 +224,6 @@ const ProjectsComponent: React.FC = () => {
           });
         }
       } catch (parseError) {
-        console.warn(`Failed to parse collections for project ${projectName}`);
       }
 
       return {
@@ -221,7 +233,6 @@ const ProjectsComponent: React.FC = () => {
       };
 
     } catch (error) {
-      console.warn(`Error fetching metadata for project ${projectName}:`, error);
       return {
         collectionCount: 0,
         lastModified: 'Unknown',
@@ -275,12 +286,9 @@ const ProjectsComponent: React.FC = () => {
           setProjects([]);
         }
       } catch (parseError) {
-        console.error('JSON Parse Error:', parseError);
-        console.error('Failed to parse response:', data);
         setProjects([]);
       }
     } catch (err) {
-      console.error('Error fetching projects:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch projects');
     } finally {
       setLoading(false);
@@ -342,10 +350,9 @@ const ProjectsComponent: React.FC = () => {
       // Success - refresh the projects list and close modal
       await fetchProjects();
       setIsModalOpen(false);
-      setProjectData({ name: '', collaborators: '', password: '' });
+      setProjectData({ name: '', /* collaborators: '', */ password: '' }); // COMMENTED OUT - collaborators feature disabled
   
     } catch (err) {
-      console.error('Error creating project:', err);
       setError(err instanceof Error ? err.message : 'Failed to create project');
     } finally {
       setCreateLoading(false);
@@ -361,12 +368,142 @@ const ProjectsComponent: React.FC = () => {
     setIsFilterOpen(false);
   };
 
+  const handleRenameProject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedProject) return;
+    
+    // Validate new project name
+    const nameError = validateProjectName(renameValue);
+    if (nameError) {
+      setError(nameError);
+      return;
+    }
+
+    // Check for duplicate names (excluding current project)
+    if (renameValue !== selectedProject.name && isDuplicateProjectName(renameValue)) {
+      setError('A project with this name already exists');
+      return;
+    }
+
+    try {
+      setRenameLoading(true);
+      setError(null);
+      
+      const token = await getToken();
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(selectedProject.name)}?rename=${encodeURIComponent(renameValue)}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to rename project: ${errorText}`);
+      }
+
+      // Success - refresh the projects list and close modal
+      await fetchProjects();
+      setIsRenameModalOpen(false);
+      setSelectedProject(null);
+      setRenameValue('');
+      
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to rename project');
+    } finally {
+      setRenameLoading(false);
+    }
+  };
+
+  const handleDeleteProject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedProject) return;
+    
+    // Validate that the user typed the project name correctly
+    if (deleteConfirmationValue !== selectedProject.name) {
+      setError('Project name does not match. Please type the exact project name to confirm deletion.');
+      return;
+    }
+
+    try {
+      setDeleteLoading(true);
+      setError(null);
+      
+      const token = await getToken();
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}/api/v1/projects/${encodeURIComponent(selectedProject.name)}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to delete project: ${errorText}`);
+      }
+
+      // Success - refresh the projects list and close modal
+      await fetchProjects();
+      setIsDeleteModalOpen(false);
+      setSelectedProject(null);
+      setDeleteConfirmationValue('');
+      
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete project');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const openProjectOptionsModal = (e: React.MouseEvent, project: Project) => {
+    e.stopPropagation();
+    setSelectedProject(project);
+    setIsProjectOptionsModalOpen(true);
+    setError(null);
+  };
+
+  const openRenameModal = () => {
+    if (!selectedProject) return;
+    setRenameValue(selectedProject.name);
+    setIsRenameModalOpen(true);
+    setIsProjectOptionsModalOpen(false);
+    setError(null);
+  };
+
+  const openDeleteModal = () => {
+    if (!selectedProject) return;
+    setDeleteConfirmationValue('');
+    setIsDeleteModalOpen(true);
+    setIsProjectOptionsModalOpen(false);
+    setError(null);
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center mt-40">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-sb-amber"></div>
         <p className="mt-4 text-lg" style={{ color: 'var(--text-secondary)' }}>
-          Loading {user?.givenName}'s projects...
+          Loading {user?.firstName}'s projects...
         </p>
       </div>
     );
@@ -389,9 +526,19 @@ const ProjectsComponent: React.FC = () => {
 
      {/* Header Section */}
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
-          {user?.givenName}'s Projects
-        </h1>
+        <div className="flex items-center justify-center gap-4 mb-2">
+          <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
+            {user?.firstName}'s Projects
+          </h1>
+          <button
+            onClick={() => setShowHelpModal(true)}
+            className="p-2 rounded-lg border-2 border-gray-400 hover:border-sb-amber transition-colors"
+            style={{ backgroundColor: 'var(--bg-primary)' }}
+            title="Help & Information about Projects"
+          >
+            <HelpCircle size={16} style={{ color: 'var(--text-secondary)' }} />
+          </button>
+        </div>
         {projects.length === 0 ? (
           <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
             Get started by creating your first project
@@ -446,25 +593,40 @@ const ProjectsComponent: React.FC = () => {
           {sortedProjects.map((project, index) => (
             <div
               key={`project-${index}-${project.name}`}
-              onClick={() => handleProjectClick(project.name)}
-              className="border-2 border-gray-400 p-6 rounded-lg hover:bg-white hover:border-sb-amber hover:shadow-lg hover:-translate-y-1 hover:text-black transition-all duration-300 cursor-pointer transform"
+              className="border-2 border-gray-400 p-6 rounded-lg hover:bg-white hover:border-sb-amber hover:shadow-lg hover:-translate-y-1 hover:text-black transition-all duration-300 cursor-pointer transform relative"
               style={{ backgroundColor: 'var(--bg-secondary)' }}
             >
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div 
+                  className="flex items-center gap-3 min-w-0 flex-1"
+                  onClick={() => handleProjectClick(project.name)}
+                >
                   <FolderOpen size={24} className="text-sb-amber flex-shrink-0" />
                   <h3 
                     className="text-xl font-semibold truncate" 
                     style={{ color: 'var(--text-primary)' }}
-                    title={project.name || 'Unnamed Project'} // Show full name on hover
+                    title={project.name || 'Unnamed Project'}
                   >
                     {truncateProjectName(project.name || 'Unnamed Project')}
                   </h3>
                 </div>
-                <div className="w-3 h-3 bg-green-500 rounded-full flex-shrink-0" title="Active"></div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full flex-shrink-0" title="Active"></div>
+                  <button
+                    onClick={(e) => openProjectOptionsModal(e, project)}
+                    className="p-1 hover:bg-gray-200 hover:bg-opacity-20 rounded transition-colors"
+                    title="Project options"
+                  >
+                    <MoreVertical size={16} style={{ color: 'var(--text-secondary)' }} />
+                  </button>
+                </div>
               </div>          
               
-              <div className="space-y-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+              <div 
+                className="space-y-2 text-sm" 
+                style={{ color: 'var(--text-secondary)' }}
+                onClick={() => handleProjectClick(project.name)}
+              >
                 <p>📁 Collections: {project.collectionCount !== undefined ? project.collectionCount : 'Loading...'}</p>
                 <p>🕒 Last modified: {project.lastModified || 'Recently'}</p>
                 <p>📊 Size: {project.size || 'Calculating...'}</p>
@@ -554,6 +716,7 @@ const ProjectsComponent: React.FC = () => {
                 </div>
               </div>
           
+              {/* COMMENTED OUT - collaborators feature disabled
               <div className="mb-4">
                 <label 
                   className="block text-sm font-medium mb-1" 
@@ -576,6 +739,7 @@ const ProjectsComponent: React.FC = () => {
                   disabled={createLoading}
                 />
               </div>
+              */}
           
               <div className="mb-6">
                 <label 
@@ -606,7 +770,7 @@ const ProjectsComponent: React.FC = () => {
                   onClick={() => {
                     setIsModalOpen(false);
                     setError(null);
-                    setProjectData({ name: '', collaborators: '', password: '' });
+                    setProjectData({ name: '', /* collaborators: '', */ password: '' }); // COMMENTED OUT - collaborators feature disabled
                   }}
                   className="px-4 py-2 border-2 rounded-xl transition-all duration-200 hover:opacity-80"
                   style={{ 
@@ -631,7 +795,349 @@ const ProjectsComponent: React.FC = () => {
         </div>
       )}
 
-      {/* Click outside to close filter dropdown */}
+      {/* Project Options Modal */}
+      {isProjectOptionsModalOpen && selectedProject && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div 
+            className="p-6 rounded-lg w-full max-w-sm border-2 shadow-xl animate-slide-up"
+            style={{ 
+              backgroundColor: 'var(--bg-primary)', 
+              borderColor: 'var(--border-color, #374151)' 
+            }}
+          >
+            <h2 className="text-xl font-bold mb-6 text-center" style={{ color: 'var(--text-primary)' }}>
+              Project Options
+            </h2>
+            
+            <div className="text-center mb-4">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <FolderOpen size={20} className="text-sb-amber" />
+                <span className="font-medium" style={{ color: 'var(--text-primary)' }}>
+                  {selectedProject.name}
+                </span>
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <button
+                onClick={openRenameModal}
+                className="w-full px-4 py-3 border-2 border-gray-400 rounded-lg hover:bg-sb-amber hover:border-sb-amber hover:text-black transition-all duration-200 flex items-center justify-center gap-2"
+                style={{ 
+                  backgroundColor: 'var(--bg-secondary)', 
+                  color: 'var(--text-primary)'
+                }}
+              >
+                <Edit2 size={16} />
+                Rename Project
+              </button>
+              
+              <button
+                onClick={openDeleteModal}
+                className="w-full px-4 py-3 border-2 border-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all duration-200 flex items-center justify-center gap-2 text-red-400"
+                style={{ backgroundColor: 'var(--bg-secondary)' }}
+              >
+                <Trash2 size={16} />
+                Delete Project
+              </button>
+            </div>
+            
+            <button
+              onClick={() => {
+                setIsProjectOptionsModalOpen(false);
+                setSelectedProject(null);
+              }}
+              className="w-full mt-4 px-4 py-2 text-sm border-2 rounded-lg transition-all duration-200 hover:opacity-80"
+              style={{ 
+                backgroundColor: 'var(--bg-secondary)', 
+                borderColor: 'var(--border-color, #374151)',
+                color: 'var(--text-secondary)'
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Rename Project Modal */}
+      {isRenameModalOpen && selectedProject && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div 
+            className="p-6 rounded-lg w-full max-w-md border-2 shadow-xl animate-slide-up"
+            style={{ 
+              backgroundColor: 'var(--bg-primary)', 
+              borderColor: 'var(--border-color, #374151)' 
+            }}
+          >
+            <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+              Rename Project
+            </h2>
+        
+            {error && (
+              <div 
+                className="border px-4 py-3 rounded mb-4"
+                style={{ 
+                  backgroundColor: 'var(--error-bg, #fef2f2)', 
+                  borderColor: 'var(--error-border, #fca5a5)',
+                  color: 'var(--error-text, #dc2626)'
+                }}
+              >
+                {error}
+              </div>
+            )}
+        
+            <form onSubmit={handleRenameProject}>
+              <div className="mb-6">
+                <label 
+                  className="block text-sm font-medium mb-1" 
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  New Project Name *
+                </label>
+                <input
+                  type="text"
+                  value={renameValue}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                  className="w-full p-2 border-2 rounded focus:border-sb-amber focus:outline-none transition-colors"
+                  style={{ 
+                    backgroundColor: 'var(--bg-secondary)', 
+                    borderColor: 'var(--border-color, #374151)',
+                    color: 'var(--text-primary)'
+                  }}
+                  placeholder="my-awesome-project"
+                  required
+                  disabled={renameLoading}
+                  maxLength={32}
+                />
+                <div className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+                  {renameValue.length}/32 characters • Only letters, numbers, underscores (_), and hyphens (-) allowed
+                </div>
+              </div>
+          
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsRenameModalOpen(false);
+                    setSelectedProject(null);
+                    setRenameValue('');
+                    setError(null);
+                  }}
+                  className="px-4 py-2 border-2 rounded-xl transition-all duration-200 hover:opacity-80"
+                  style={{ 
+                    backgroundColor: 'var(--bg-secondary)', 
+                    borderColor: 'var(--border-color, #374151)',
+                    color: 'var(--text-secondary)'
+                  }}
+                  disabled={renameLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-sb-amber hover:bg-sb-amber-dark text-white rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={renameLoading || !renameValue.trim() || validateProjectName(renameValue) !== null}
+                >
+                  {renameLoading ? 'Renaming...' : 'Rename Project'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Project Modal */}
+      {isDeleteModalOpen && selectedProject && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div 
+            className="p-6 rounded-lg w-full max-w-md border-2 shadow-xl animate-slide-up"
+            style={{ 
+              backgroundColor: 'var(--bg-primary)', 
+              borderColor: 'var(--border-color, #374151)' 
+            }}
+          >
+            <h2 className="text-xl font-bold mb-4 text-red-400">
+              Delete Project
+            </h2>
+        
+            {error && (
+              <div 
+                className="border px-4 py-3 rounded mb-4"
+                style={{ 
+                  backgroundColor: 'var(--error-bg, #fef2f2)', 
+                  borderColor: 'var(--error-border, #fca5a5)',
+                  color: 'var(--error-text, #dc2626)'
+                }}
+              >
+                {error}
+              </div>
+            )}
+            
+            <form onSubmit={handleDeleteProject}>
+              <div className="mb-6">
+                <p className="mb-4" style={{ color: 'var(--text-primary)' }}>
+                  Are you sure you want to delete the project <strong>'{selectedProject.name}'</strong>? 
+                  This action cannot be undone and will permanently delete all collections, clusters, and records in this project.
+                </p>
+                
+                <p className="mb-2 text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                  Please type <strong>"{selectedProject.name}"</strong> to confirm:
+                </p>
+                
+                <input
+                  type="text"
+                  value={deleteConfirmationValue}
+                  onChange={(e) => setDeleteConfirmationValue(e.target.value)}
+                  className="w-full p-2 border-2 rounded focus:border-red-500 focus:outline-none transition-colors"
+                  style={{ 
+                    backgroundColor: 'var(--bg-secondary)', 
+                    borderColor: 'var(--border-color, #374151)',
+                    color: 'var(--text-primary)'
+                  }}
+                  placeholder={`Type "${selectedProject.name}" here`}
+                  disabled={deleteLoading}
+                />
+              </div>
+          
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setSelectedProject(null);
+                  setDeleteConfirmationValue('');
+                  setError(null);
+                }}
+                className="px-4 py-2 border-2 rounded-xl transition-all duration-200 hover:opacity-80"
+                style={{ 
+                  backgroundColor: 'var(--bg-secondary)', 
+                  borderColor: 'var(--border-color, #374151)',
+                  color: 'var(--text-secondary)'
+                }}
+                disabled={deleteLoading}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={deleteLoading || deleteConfirmationValue !== selectedProject.name}
+              >
+                {deleteLoading ? 'Deleting...' : 'Delete Project'}
+              </button>
+            </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Help Modal */}
+      {showHelpModal && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowHelpModal(false)}
+        >
+          <div 
+            className="max-w-3xl w-full max-h-[90vh] overflow-y-auto rounded-lg border-2 p-6"
+            style={{ backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border-color, #374151)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                Projects Help & Information
+              </h2>
+              <button
+                onClick={() => setShowHelpModal(false)}
+                className="p-2 hover:bg-gray-200 hover:bg-opacity-20 rounded transition-colors"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {/* What are Projects */}
+              <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <Database size={20} className="text-sb-amber" />
+                  <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    What are Projects?
+                  </h3>
+                </div>
+                <p className="mb-3" style={{ color: 'var(--text-secondary)' }}>
+                  Projects are the top-level containers in OstrichDB that organize your data. Think of them as separate databases or workspaces where you can store related collections, clusters, and records.
+                </p>
+                <ul className="space-y-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  <li>• <strong>Isolation:</strong> Each project is completely isolated from others</li>
+                  <li>• <strong>Organization:</strong> Group related data and collections together</li>
+                  <li>• <strong>Access Control:</strong> Manage permissions and collaboration per project</li>
+                  <li>• <strong>Scalability:</strong> Create unlimited projects for different use cases</li>
+                </ul>
+              </div>
+
+              {/* Getting Started */}
+              <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <Lightbulb size={20} className="text-sb-amber" />
+                  <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    Getting Started
+                  </h3>
+                </div>
+                <ul className="space-y-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  <li>• <strong>Create a Project:</strong> Click the "+ Create New Project" button</li>
+                  <li>• <strong>Name Requirements:</strong> Use letters, numbers, underscores, or hyphens (max 32 chars)</li>
+                  <li>• <strong>Access Projects:</strong> Click on any project card to view its collections</li>
+                  <li>• <strong>Manage Projects:</strong> Use the three-dot menu for rename/delete options</li>
+                </ul>
+              </div>
+
+              {/* Best Practices */}
+              <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <Target size={20} className="text-sb-amber" />
+                  <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    Project Organization Tips
+                  </h3>
+                </div>
+                <ul className="space-y-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  <li>• <strong>Logical Separation:</strong> Create separate projects for different applications or environments</li>
+                  <li>• <strong>Naming Convention:</strong> Use descriptive names like "ecommerce-prod" or "analytics-dev"</li>
+                  <li>• <strong>Environment Separation:</strong> Keep development, staging, and production in separate projects</li>
+                  <li>• <strong>Team Organization:</strong> Create projects per team or department for better collaboration</li>
+                </ul>
+              </div>
+
+              {/* Common Use Cases */}
+              <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <BookOpen size={20} className="text-sb-amber" />
+                  <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    Common Project Use Cases
+                  </h3>
+                </div>
+                <ul className="space-y-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  <li>• <strong>Web Applications:</strong> Store user data, content, and application state</li>
+                  <li>• <strong>Analytics:</strong> Organize metrics, events, and reporting data</li>
+                  <li>• <strong>IoT Systems:</strong> Manage sensor data and device configurations</li>
+                  <li>• <strong>Content Management:</strong> Store articles, media metadata, and user-generated content</li>
+                  <li>• <strong>Development Testing:</strong> Create sandbox environments for testing features</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="flex justify-center mt-6">
+              <button
+                onClick={() => setShowHelpModal(false)}
+                className="px-6 py-2 bg-sb-amber hover:bg-sb-amber-dark text-white rounded-xl transition-all duration-200"
+              >
+                Got it!
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Click outside to close dropdowns */}
       {isFilterOpen && (
         <div 
           className="fixed inset-0 z-5" 

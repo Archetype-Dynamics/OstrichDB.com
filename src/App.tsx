@@ -15,8 +15,8 @@
  **/
 
 import React, { useEffect, useState } from "react";
-import { KindeProvider } from "@kinde-oss/kinde-auth-react";
-import { BrowserRouter as Router, Routes, Route, useParams } from "react-router-dom";
+import { ClerkProvider } from "@clerk/clerk-react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { createTheme, MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
 
@@ -37,12 +37,11 @@ import  DashboardTopNavbarb from "./components/layout/DashboardTopNavbar";
 import { ThemeProvider } from "./context/ThemeContext";
 import NLPInterface from "./components/dashboard/NLP";
 import Contributors from "./pages/contributors";
+import PricingPage from "./pages/pricing";
+import Contact from "./pages/contact";
 
-// Kinde authentication .env variables
-const clientId = import.meta.env.VITE_KINDE_CLIENT_ID;
-const domain = import.meta.env.VITE_KINDE_DOMAIN;
-const logoutUri = import.meta.env.VITE_KINDE_LOGOUT_URL;
-const redirectUri = import.meta.env.VITE_KINDE_REDIRECT_URL;
+// Clerk authentication .env variables
+const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 // Mantine theme configuration
 const theme = createTheme({
@@ -135,17 +134,12 @@ function App() {
   }
 
   return (
-    <KindeProvider
-      clientId={clientId}
-      domain={domain}
-      redirectUri={redirectUri}
-      logoutUri={logoutUri}
-    >
+    <ClerkProvider publishableKey={clerkPubKey}>
       <MantineProvider theme={theme}>
         <ThemeProvider>
           <Router>
             <Routes>
-              {/* Contributors Page - MOVED INSIDE Routes */}
+              {/* Contributors Page */}
               <Route 
                 path="/contributors" 
                 element={
@@ -156,6 +150,40 @@ function App() {
                     <Navbar />
                     <main className="flex-1">
                       <Contributors />
+                    </main>
+                    <Footer />
+                  </div>
+                } 
+              />
+
+              {/* Pricing Page */}
+              <Route 
+                path="/pricing" 
+                element={
+                  <div
+                    className="min-h-screen flex flex-col"
+                    style={{ backgroundColor: "var(--bg-primary)" }}
+                  >
+                    <Navbar />
+                    <main className="flex-1">
+                      <PricingPage />
+                    </main>
+                    <Footer />
+                  </div>
+                } 
+              />
+
+              {/* Contact Page */}
+              <Route 
+                path="/contact" 
+                element={
+                  <div
+                    className="min-h-screen flex flex-col"
+                    style={{ backgroundColor: "var(--bg-primary)" }}
+                  >
+                    <Navbar />
+                    <main className="flex-1">
+                      <Contact />
                     </main>
                     <Footer />
                   </div>
@@ -248,7 +276,7 @@ function App() {
           </Router>
         </ThemeProvider>
       </MantineProvider>
-    </KindeProvider>
+    </ClerkProvider>
   );
 }
 
