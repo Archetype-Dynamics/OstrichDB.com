@@ -981,7 +981,7 @@ const ProjectsComponent: React.FC = () => {
                 </p>
                 
                 <p className="mb-2 text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                  Please type <strong>{selectedProject.name}</strong> to confirm:
+                  Please type <strong>"{selectedProject.name}"</strong> to confirm:
                 </p>
                 
                 <input
