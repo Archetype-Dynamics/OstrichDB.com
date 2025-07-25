@@ -32,7 +32,7 @@ interface Project {
 
 interface ProjectData {
   name: string;
-  collaborators: string; // Not yet implemented in the backend, just a placeholder for now
+  // collaborators: string; // Not yet implemented in the backend, just a placeholder for now - COMMENTED OUT
   password: string; // Not yet implemented in the backend, just a placeholder for now
 }
 
@@ -59,7 +59,7 @@ const ProjectsComponent: React.FC = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [projectData, setProjectData] = useState<ProjectData>({
     name: '',
-    collaborators: '',
+    // collaborators: '', // COMMENTED OUT - collaborators feature disabled
     password: ''
   });
   const [isProjectOptionsModalOpen, setIsProjectOptionsModalOpen] = useState(false);
@@ -350,7 +350,7 @@ const ProjectsComponent: React.FC = () => {
       // Success - refresh the projects list and close modal
       await fetchProjects();
       setIsModalOpen(false);
-      setProjectData({ name: '', collaborators: '', password: '' });
+      setProjectData({ name: '', /* collaborators: '', */ password: '' }); // COMMENTED OUT - collaborators feature disabled
   
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create project');
@@ -716,6 +716,7 @@ const ProjectsComponent: React.FC = () => {
                 </div>
               </div>
           
+              {/* COMMENTED OUT - collaborators feature disabled
               <div className="mb-4">
                 <label 
                   className="block text-sm font-medium mb-1" 
@@ -738,6 +739,7 @@ const ProjectsComponent: React.FC = () => {
                   disabled={createLoading}
                 />
               </div>
+              */}
           
               <div className="mb-6">
                 <label 
@@ -768,7 +770,7 @@ const ProjectsComponent: React.FC = () => {
                   onClick={() => {
                     setIsModalOpen(false);
                     setError(null);
-                    setProjectData({ name: '', collaborators: '', password: '' });
+                    setProjectData({ name: '', /* collaborators: '', */ password: '' }); // COMMENTED OUT - collaborators feature disabled
                   }}
                   className="px-4 py-2 border-2 rounded-xl transition-all duration-200 hover:opacity-80"
                   style={{ 

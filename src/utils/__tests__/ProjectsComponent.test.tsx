@@ -33,7 +33,7 @@ describe('Projects Component', () => {
     await userEvent.click(createButton);
 
     expect(screen.getByPlaceholderText('Enter name of project')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Add collaborator?')).toBeInTheDocument();
+    // expect(screen.getByPlaceholderText('Add collaborator?')).toBeInTheDocument(); // COMMENTED OUT - collaborators feature disabled
     expect(screen.getByPlaceholderText('Enter password for project')).toBeInTheDocument();
   });
 
@@ -52,15 +52,15 @@ describe('Projects Component', () => {
     await userEvent.click(createButton);
 
     const nameInput = screen.getByPlaceholderText('Enter name of project');
-    const emailInput = screen.getByPlaceholderText('Add collaborator?');
+    // const emailInput = screen.getByPlaceholderText('Add collaborator?'); // COMMENTED OUT - collaborators feature disabled
     const passwordInput = screen.getByPlaceholderText('Enter password for project');
 
     await userEvent.type(nameInput, 'Test Project');
-    await userEvent.type(emailInput, 'test@example.com');
+    // await userEvent.type(emailInput, 'test@example.com'); // COMMENTED OUT - collaborators feature disabled
     await userEvent.type(passwordInput, 'secure123');
 
     expect(nameInput).toHaveValue('Test Project');
-    expect(emailInput).toHaveValue('test@example.com');
+    // expect(emailInput).toHaveValue('test@example.com'); // COMMENTED OUT - collaborators feature disabled
     expect(passwordInput).toHaveValue('secure123');
   });
 
@@ -77,7 +77,7 @@ describe('Projects Component', () => {
 
     expect(consoleSpy).toHaveBeenCalledWith('Project created:', {
       name: 'Test Project',
-      collaborators: '',
+      // collaborators: '', // COMMENTED OUT - collaborators feature disabled
       password: 'secure123'
     });
 
