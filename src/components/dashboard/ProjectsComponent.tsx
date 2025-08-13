@@ -511,6 +511,24 @@ const ProjectsComponent: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center gap-6 mt-40">
+      {/* Production Warning */}
+      <div className="w-full bg-gradient-to-r from-red-600 to-orange-600 text-white">
+        <div className="max-w-4xl mx-auto px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-sm font-bold">⚠️</span>
+            </div>
+            <div className="flex-1">
+              <div className="font-bold text-lg">NOT FOR PRODUCTION USE</div>
+              <div className="text-sm opacity-90 mt-1">
+                This software is in early development. Using it for production workloads may result in data loss. 
+                Please use only for testing, development, and evaluation purposes.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {error && (
         <div className="w-full max-w-2xl bg-red-900/20 border border-red-500/30 rounded-lg p-4 mb-4">
           <div className="text-red-400 text-sm font-medium mb-1">Error</div>
