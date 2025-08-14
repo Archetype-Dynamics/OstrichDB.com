@@ -125,6 +125,9 @@ const Navbar: React.FC = () => {
                   <span className="text-[var(--logo-primary)]">Ostrich</span>
                   <span className="text-[var(--logo-secondary)]">DB</span>
                 </span>
+                <span className="bg-red-600 text-white text-xs px-2 py-1 rounded-full font-medium">
+                  DEV
+                </span>
               </a>
   
               {/* Desktop Navigation & Actions */}

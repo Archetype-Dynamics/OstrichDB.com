@@ -920,6 +920,21 @@ const ClusterEditor: React.FC = () => {
           </div>
         </div>
 
+        {/* Production Warning */}
+        <div className="bg-gradient-to-r from-red-600 to-orange-600 text-white">
+          <div className="px-6 py-3">
+            <div className="flex items-center gap-3">
+              <AlertTriangle size={20} className="flex-shrink-0" />
+              <div className="flex-1">
+                <div className="font-semibold text-sm">⚠️ NOT FOR PRODUCTION USE</div>
+                <div className="text-xs opacity-90">
+                  This software is in early development. Using it may result in data loss. Use only for testing and development.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Search Interface */}
         <div className="p-6">
           <div className="max-w-2xl mx-auto">
@@ -1569,6 +1584,21 @@ const ClusterEditor: React.FC = () => {
       className="min-h-screen"
       style={{ backgroundColor: "var(--bg-primary)" }}
     >
+      {/* Production Warning */}
+      <div className="bg-gradient-to-r from-red-600 to-orange-600 text-white">
+        <div className="px-6 py-3">
+          <div className="flex items-center gap-3">
+            <AlertTriangle size={20} className="flex-shrink-0" />
+            <div className="flex-1">
+              <div className="font-semibold text-sm">⚠️ NOT FOR PRODUCTION USE</div>
+              <div className="text-xs opacity-90">
+                This software is in early development. Using it may result in data loss. Use only for testing and development.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="border-b" style={{ borderColor: "var(--border-color)" }}>
         <div className="px-6 py-4">

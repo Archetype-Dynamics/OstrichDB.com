@@ -53,6 +53,21 @@ const Hero: React.FC = () => {
             <span className="text-sb-amber block">For Everyone</span>
           </h1>
           
+          {/* Development Warning */}
+          <div className={`bg-gradient-to-r from-amber-600 to-red-600 text-white rounded-lg p-4 mb-6 ${
+            getAnimationClasses(isVisible, 'fadeUpScale', 80)
+          }`}>
+            <div className="flex items-center justify-center gap-2">
+              <span className="text-lg">⚠️</span>
+              <div className="text-center">
+                <div className="font-bold text-sm">DEVELOPMENT SOFTWARE</div>
+                <div className="text-xs opacity-90 mt-1">
+                  Not suitable for production use • May result in data loss • Use for testing only
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div
             style={{ color: "var(--text-primary)" }}
             className={`text-lg md:text-xl mb-8 leading-relaxed ${

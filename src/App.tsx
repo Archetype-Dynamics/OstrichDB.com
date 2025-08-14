@@ -32,6 +32,7 @@ import Dashboard from "./pages/dashboard";
 import CollectionsComponent from "./components/dashboard/CollectionsComponent";
 import CollectionOverview from "./components/dashboard/CollectionOverview";
 import ClusterEditor from "./components/dashboard/ClusterEditor";
+import ManualQueryEditor from "./components/dashboard/ManualQueryEditor";
 import NotFound from './components/NotFound';
 import  DashboardTopNavbarb from "./components/layout/DashboardTopNavbar";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -39,6 +40,7 @@ import NLPInterface from "./components/dashboard/NLP";
 import Contributors from "./pages/contributors";
 import PricingPage from "./pages/pricing";
 import Contact from "./pages/contact";
+import AccountPage from "./pages/account";
 
 // Clerk authentication .env variables
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -85,27 +87,6 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
   </div>
 );
 
-// Placeholder components for manual query editor
-const ManualQueryEditor: React.FC = () => {
-  
-  return (
-    <div className="flex flex-col items-center justify-center mt-40">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
-          Manual Query Editor
-        </h1>
-    
-        <div className="text-6xl mb-4">💻</div>
-        <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-          Manual query editor interface coming soon...
-        </p>
-        <p className="text-sm mt-4" style={{ color: 'var(--text-secondary)' }}>
-          Write and execute OstrichDB queries directly.
-        </p>
-      </div>
-    </div>
-  );
-};
 
 
 function App() {
@@ -187,6 +168,16 @@ function App() {
                     </main>
                     <Footer />
                   </div>
+                } 
+              />
+
+              {/* Account Management Page */}
+              <Route 
+                path="/account" 
+                element={
+                  <DashboardLayout>
+                    <AccountPage />
+                  </DashboardLayout>
                 } 
               />
 
