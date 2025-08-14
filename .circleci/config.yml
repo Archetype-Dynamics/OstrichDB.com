@@ -1,0 +1,91 @@
+# CircleCI config for OstrichDB frontend
+version: 2.1
+
+orbs:
+  node: circleci/node@5
+
+jobs:
+  # Quality checks job - runs linting, type checking, security audit
+  quality-checks:
+    executor: node/default
+    steps:
+      - checkout
+      - node/install-packages:
+          cache-path: ~/project/node_modules
+          override-ci-command: yarn install --frozen-lockfile
+      
+      # Run ESLint
+      - run:
+          name: Run Linting
+          command: yarn lint
+      
+      # Run TypeScript type checking
+      - run:
+          name: TypeScript Type Check
+          command: yarn type-check
+      
+      # Security audit for vulnerable packages
+      - run:
+          name: Security Audit
+          command: yarn audit --level moderate
+          # Continue even if there are moderate vulnerabilities (can adjust this)
+
+  # Build verification job
+  build-and-deploy:
+    executor: node/default
+    steps:
+      - checkout
+      - node/install-packages:
+          cache-path: ~/project/node_modules
+          override-ci-command: yarn install --frozen-lockfile
+      
+      # Build the application
+      - run:
+          name: Build Application
+          command: yarn build
+      
+      # Store build artifacts for debugging if needed
+      - run:
+          name: Create artifacts directory
+          command: mkdir -p ~/artifacts
+      - run:
+          name: Copy build artifacts
+          command: cp -R dist ~/artifacts/ 2>/dev/null || true
+      - store_artifacts:
+          path: ~/artifacts
+          destination: build-output
+      
+      # Deploy to Vercel (only on main branch)
+      - run:
+          name: Deploy to Vercel
+          command: |
+            if [ "$CIRCLE_BRANCH" = "main" ]; then
+              echo "Deploying to production..."
+              npx vercel --token $VERCEL_TOKEN --prod --yes
+            else
+              echo "Skipping deployment - not on main branch"
+            fi
+
+workflows:
+  # Main workflow
+  build-and-test:
+    jobs:
+      # Run quality checks on all important branches
+      - quality-checks:
+          filters:
+            branches:
+              only:
+                - main
+                - development
+                - /^Rel_v.*/  
+
+      # Build and potentially deploy
+      - build-and-deploy:
+          requires:
+            - quality-checks
+          filters:
+            branches:
+              only:
+                - main
+                - development
+                - /^Rel_v.*/
