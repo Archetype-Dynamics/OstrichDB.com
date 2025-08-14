@@ -40,6 +40,7 @@ import NLPInterface from "./components/dashboard/NLP";
 import Contributors from "./pages/contributors";
 import PricingPage from "./pages/pricing";
 import Contact from "./pages/contact";
+import AccountPage from "./pages/account";
 
 // Clerk authentication .env variables
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -167,6 +168,16 @@ function App() {
                     </main>
                     <Footer />
                   </div>
+                } 
+              />
+
+              {/* Account Management Page */}
+              <Route 
+                path="/account" 
+                element={
+                  <DashboardLayout>
+                    <AccountPage />
+                  </DashboardLayout>
                 } 
               />
 

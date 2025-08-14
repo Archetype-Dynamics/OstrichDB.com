@@ -13,7 +13,7 @@
  **/
 
 import React, { useState, useRef, useEffect } from "react";
-import { Settings, LogOut, Folder } from "lucide-react";
+import { Settings, LogOut, Folder, User } from "lucide-react";
 import { useAuth, useUser } from "@clerk/clerk-react";
 
 const ProfileDropdown: React.FC = () => {
@@ -67,6 +67,8 @@ const ProfileDropdown: React.FC = () => {
       window.location.href = "/collections";
     } else if (action === "preferences") {
       window.location.href = "/preferences";
+    } else if (action === "account") {
+      window.location.href = "/account";
     }
   };
 
@@ -185,6 +187,25 @@ const ProfileDropdown: React.FC = () => {
             >
               <Folder size={16} />
               <span>Projects</span>
+            </button>
+
+            <button
+              onClick={() => handleMenuClick("account")}
+              className="w-full px-4 py-2 text-left text-sm hover:opacity-80 transition-opacity flex items-center space-x-3"
+              style={{
+                color: "var(--text-primary)",
+                backgroundColor: "transparent",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor =
+                  "var(--hover-bg, rgba(255,255,255,0.1))";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+              }}
+            >
+              <User size={16} />
+              <span>Account</span>
             </button>
 
             <button
