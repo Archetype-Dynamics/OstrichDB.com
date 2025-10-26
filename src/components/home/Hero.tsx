@@ -38,93 +38,135 @@ const Hero: React.FC = () => {
   };
 
   return (
-    <div 
-      ref={elementRef} //Dev Note: If your IDE is screaming about this line, dont worry about it, leave as is - Marshall
-      className="relative min-h-screen pt-24 pb-12 md:pb-16 lg:pb-20 hero-gradient"
+    <div
+      ref={elementRef}
+      className="relative min-h-screen pt-24 pb-12 md:pb-16 lg:pb-20 overflow-hidden"
     >
-      <div className="container pb-20 pt-16">
-        <div className="max-w-3xl mx-auto text-center mb-12">
-          <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight ${
+      {/* Grid background */}
+      <div className="absolute inset-0 bg-grid opacity-30"></div>
+      <div className="absolute inset-0 hero-gradient-enhanced opacity-50"></div>
+
+      <div className="container pb-20 pt-16 relative z-10">
+        <div className="max-w-4xl mx-auto text-center mb-16">
+          {/* Badge */}
+          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 backdrop-blur-sm border ${
             getAnimationClasses(isVisible, 'fadeUpScale', 0)
+          }`}
+          style={{
+            backgroundColor: "rgba(224, 138, 44, 0.1)",
+            borderColor: "rgba(224, 138, 44, 0.3)"
+          }}>
+            <span className="w-2 h-2 bg-sb-amber rounded-full animate-pulse"></span>
+            <span className="text-sm font-medium text-sb-amber">Modern Database Technology</span>
+          </div>
+
+          <h1 className={`text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold mb-8 leading-[1.1] ${
+            getAnimationClasses(isVisible, 'fadeUpScale', 100)
           }`}>
-            <span style={{ color: "var(--text-primary)" }} className="block">
+            <span style={{ color: "var(--text-primary)" }} className="block mb-2">
               The Database
             </span>
-            <span className="text-sb-amber block">For Everyone</span>
+            <span className="text-sb-amber block bg-gradient-to-r from-sb-amber to-amber-300 bg-clip-text text-transparent">
+              For Everyone
+            </span>
           </h1>
-          
-          {/* Development Warning */}
-          <div className={`bg-gradient-to-r from-amber-600 to-red-600 text-white rounded-lg p-4 mb-6 ${
-            getAnimationClasses(isVisible, 'fadeUpScale', 80)
-          }`}>
-            <div className="flex items-center justify-center gap-2">
-              <span className="text-lg">⚠️</span>
-              <div className="text-center">
-                <div className="font-bold text-sm">DEVELOPMENT SOFTWARE</div>
-                <div className="text-xs opacity-90 mt-1">
-                  Not suitable for production use • May result in data loss • Use for testing only
-                </div>
-              </div>
+
+          <p
+            style={{ color: "var(--text-primary)" }}
+            className={`text-xl md:text-2xl lg:text-3xl mb-6 leading-relaxed font-medium max-w-3xl mx-auto ${
+              getAnimationClasses(isVisible, 'fadeUpScale', 200)
+            }`}
+          >
+            Modern database technology, simplified.
+          </p>
+
+          <div
+            className={`flex flex-wrap justify-center gap-4 md:gap-6 mb-12 text-base md:text-lg ${
+              getAnimationClasses(isVisible, 'fadeUpScale', 250)
+            }`}
+          >
+            <div className="flex items-center gap-2" style={{ color: "var(--text-secondary)" }}>
+              <span className="text-sb-amber text-xl">✓</span>
+              <span>Hierarchical organization</span>
+            </div>
+            <div className="flex items-center gap-2" style={{ color: "var(--text-secondary)" }}>
+              <span className="text-sb-amber text-xl">✓</span>
+              <span>Strong typing</span>
+            </div>
+            <div className="flex items-center gap-2" style={{ color: "var(--text-secondary)" }}>
+              <span className="text-sb-amber text-xl">✓</span>
+              <span>Built-in security</span>
+            </div>
+            <div className="flex items-center gap-2" style={{ color: "var(--text-secondary)" }}>
+              <span className="text-sb-amber text-xl">✓</span>
+              <span>Natural language queries</span>
             </div>
           </div>
 
-          <div
-            style={{ color: "var(--text-primary)" }}
-            className={`text-lg md:text-xl mb-8 leading-relaxed ${
-              getAnimationClasses(isVisible, 'fadeUpScale', 100)
-            }`}
-          >
-            <p className="mb-4 opacity-80 text-base md:text-lg">
-              Hierarchical organization • Strong typing • Built-in security • Natural language queries
-            </p>
-            <p className="text-xl md:text-2xl font-medium">
-              Modern database technology, simplified.
-            </p>
-          </div>
-          
-          <div className={`flex flex-col sm:flex-row justify-center gap-4 mb-12 ${
-            getAnimationClasses(isVisible, 'fadeUpScale', 200)
+          <div className={`flex flex-col sm:flex-row justify-center gap-4 mb-4 ${
+            getAnimationClasses(isVisible, 'fadeUpScale', 300)
           }`}>
             {isSignedIn ? (
-              <button 
+              <button
                 onClick={handleStartBuilding}
                 disabled={!isLoaded}
-                className="btn btn-primary py-3 px-6 text-base disabled:opacity-50"
+                className="btn-hero-primary group disabled:opacity-50"
               >
                 {!isLoaded ? 'Loading...' : 'Start Building Free'}
+                <ArrowRight size={20} className="ml-2 group-hover:translate-x-1 transition-transform" />
               </button>
             ) : (
               <SignUpButton mode="modal">
-                <button className="btn btn-primary py-3 px-6 text-base">
+                <button className="btn-hero-primary group">
                   Start Building Free
+                  <ArrowRight size={20} className="ml-2 group-hover:translate-x-1 transition-transform" />
                 </button>
               </SignUpButton>
             )}
-            <a href="https://ostrichdb-docs.vercel.app/" target="_blank" rel="noopener noreferrer" className="btn btn-outline py-3 px-6 text-base group">
-              <span>View Docs</span>
+            <a
+              href="https://ostrichdb-docs.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-hero-secondary group"
+            >
+              <span>View Documentation</span>
               <ArrowRight
-                size={16}
+                size={20}
                 className="ml-2 group-hover:translate-x-1 transition-transform"
               />
             </a>
           </div>
 
-          <div className={`max-w-7xl mx-auto ${
-            getAnimationClasses(isVisible, 'fadeUpScale', 300)
+          <p
+            className={`text-sm mb-16 ${
+              getAnimationClasses(isVisible, 'fadeUp', 350)
+            }`}
+            style={{ color: "var(--text-secondary)", opacity: 0.7 }}
+          >
+            Note: Not recommended for production use
+          </p>
+
+          <div className={`max-w-6xl mx-auto ${
+            getAnimationClasses(isVisible, 'fadeUpScale', 400)
           }`}>
-            <video 
-              className="w-full h-auto rounded-lg shadow-2xl"
-              controls
-              autoPlay
-              muted
-              loop
-              playsInline
-              style={{ maxHeight: '70vh', minHeight: '400px' }}
-            >
-              <source src={NLPExampleVideo} type="video/mp4" />
-              <source src={NLPExampleVideo} type="video/quicktime" />
-              Your browser does not support the video tag.
-            </video>
+            <div className="relative group">
+              {/* Glow effect around video */}
+              <div className="absolute -inset-4 bg-gradient-to-r from-sb-amber/20 to-sb-amber/10 rounded-3xl blur-2xl opacity-50 group-hover:opacity-75 transition-opacity duration-500"></div>
+
+              <video
+                className="relative w-full h-auto rounded-2xl shadow-2xl border border-sb-amber/20"
+                controls
+                autoPlay
+                muted
+                loop
+                playsInline
+                style={{ maxHeight: '70vh', minHeight: '400px' }}
+              >
+                <source src={NLPExampleVideo} type="video/mp4" />
+                <source src={NLPExampleVideo} type="video/quicktime" />
+                Your browser does not support the video tag.
+              </video>
+            </div>
           </div>
         </div>
       </div>

@@ -165,11 +165,15 @@ GET .../records?minValue=1000&maxValue=3000`,
   return (
     <section
       ref={elementRef}
-      className="py-12 md:py-16 lg:py-20 xl:py-24"
+      className="py-12 md:py-16 lg:py-20 xl:py-24 relative overflow-hidden"
       style={{ backgroundColor: "var(--bg-primary)" }}
     >
-      <div className="container">
-        <div className="text-center mb-16">
+      {/* Background decoration */}
+      <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-sb-amber/5 rounded-full blur-3xl"></div>
+
+      <div className="container relative z-10">
+        <div className="text-center mb-20">
           <h2
             className={`text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight ${getAnimationClasses(
               isVisible,
@@ -183,7 +187,7 @@ GET .../records?minValue=1000&maxValue=3000`,
           </h2>
 
           <p
-            className={`text-lg ${getAnimationClasses(
+            className={`text-lg md:text-xl max-w-3xl mx-auto mb-10 ${getAnimationClasses(
               isVisible,
               "staggered",
               100
@@ -194,7 +198,7 @@ GET .../records?minValue=1000&maxValue=3000`,
             developers
           </p>
 
-          {/* Mode Toggle */}
+          {/* Mode Toggle - Enhanced */}
           <div
             className={`flex justify-center mt-8 ${getAnimationClasses(
               isVisible,
@@ -203,17 +207,20 @@ GET .../records?minValue=1000&maxValue=3000`,
             )}`}
           >
             <div
-              className="rounded-lg p-1 flex"
-              style={{ backgroundColor: "var(--bg-secondary)" }}
+              className="rounded-2xl p-1.5 flex border-2 backdrop-blur-sm"
+              style={{
+                backgroundColor: "var(--bg-secondary)",
+                borderColor: "var(--border-color)"
+              }}
             >
               <button
                 onClick={() => {
                   setActiveMode("GUI");
                   setActiveSection(0);
                 }}
-                className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
+                className={`px-8 py-3 rounded-xl text-base font-semibold transition-all duration-300 ${
                   activeMode === "GUI"
-                    ? "bg-sb-amber text-white"
+                    ? "bg-gradient-to-r from-sb-amber to-amber-500 text-white shadow-lg scale-105"
                     : "hover:bg-opacity-50"
                 }`}
                 style={{
@@ -228,9 +235,9 @@ GET .../records?minValue=1000&maxValue=3000`,
                   setActiveMode("API");
                   setActiveSection(0);
                 }}
-                className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
+                className={`px-8 py-3 rounded-xl text-base font-semibold transition-all duration-300 ${
                   activeMode === "API"
-                    ? "bg-sb-amber text-white"
+                    ? "bg-gradient-to-r from-sb-amber to-amber-500 text-white shadow-lg scale-105"
                     : "hover:bg-opacity-50"
                 }`}
                 style={{
@@ -244,7 +251,7 @@ GET .../records?minValue=1000&maxValue=3000`,
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid lg:grid-cols-3 gap-10 max-w-7xl mx-auto">
           {/* Selection Menu */}
           <div
             className={`lg:col-span-1 ${getAnimationClasses(
@@ -254,7 +261,7 @@ GET .../records?minValue=1000&maxValue=3000`,
             )}`}
           >
             <div
-              className="rounded-lg overflow-hidden border"
+              className="rounded-2xl overflow-hidden border-2 backdrop-blur-sm"
               style={{
                 backgroundColor: "var(--bg-secondary)",
                 borderColor: "var(--border-color)",
@@ -263,29 +270,29 @@ GET .../records?minValue=1000&maxValue=3000`,
               {currentExamples.map((example, index) => (
                 <div
                   key={example.id}
-                  className={`p-4 cursor-pointer transition-all duration-300 border-b relative overflow-hidden
+                  className={`p-6 cursor-pointer transition-all duration-300 border-b-2 relative overflow-hidden group
                     ${
                       activeSection === index
-                        ? "bg-sb-amber bg-opacity-10 border-sb-amber"
-                        : "hover:bg-sb-amber hover:bg-opacity-5"
+                        ? "bg-sb-amber/10"
+                        : "hover:bg-sb-amber/5"
                     }`}
                   style={{
-                    borderBottomColor: "var(--border-color)",
+                    borderBottomColor: activeSection === index ? "rgba(224, 138, 44, 0.5)" : "var(--border-color)",
                   }}
                   onMouseEnter={() => setActiveSection(index)}
                 >
                   {/* Selection indicator */}
                   {activeSection === index && (
-                    <div className="absolute left-0 top-0 w-1 h-full bg-sb-amber"></div>
+                    <div className="absolute left-0 top-0 w-1.5 h-full bg-gradient-to-b from-sb-amber to-amber-500"></div>
                   )}
 
-                  <div className="flex items-center">
-                    <span className="text-2xl mr-3">
+                  <div className="flex items-center gap-4">
+                    <span className="text-3xl transform group-hover:scale-110 transition-transform duration-300">
                       {example.title.split(" ")[0]}
                     </span>
-                    <div>
+                    <div className="flex-1">
                       <h3
-                        className={`font-medium text-sm transition-colors
+                        className={`font-semibold text-base transition-colors mb-1
                           ${activeSection === index ? "text-sb-amber" : ""}`}
                         style={{
                           color:
@@ -297,7 +304,7 @@ GET .../records?minValue=1000&maxValue=3000`,
                         {example.title.split(" ").slice(1).join(" ")}
                       </h3>
                       <p
-                        className="text-xs mt-1"
+                        className="text-sm"
                         style={{ color: "var(--text-secondary)" }}
                       >
                         {example.description}
@@ -318,7 +325,7 @@ GET .../records?minValue=1000&maxValue=3000`,
             )}`}
           >
             <div
-              className="rounded-lg p-6 h-full min-h-[500px] border"
+              className="rounded-2xl p-8 h-full min-h-[500px] border-2 backdrop-blur-sm hover:border-sb-amber/30 transition-all duration-500"
               style={{
                 backgroundColor: "var(--bg-secondary)",
                 borderColor: "var(--border-color)",

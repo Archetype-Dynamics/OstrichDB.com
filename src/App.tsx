@@ -26,8 +26,8 @@ import DashboardSideNavbar from "./components/layout/DashboardSideNavbar";
 import Hero from "./components/home/Hero";
 import CTA from "./components/home/CTA";
 import Features from "./components/home/Features";
-import CodeShowcase from "./components/home/InteractiveShowcase";
 import CodeComparison from "./components/home/ProblemSolution";
+import Stats from "./components/home/Stats";
 import Dashboard from "./pages/dashboard";
 import CollectionsComponent from "./components/dashboard/CollectionsComponent";
 import CollectionOverview from "./components/dashboard/CollectionOverview";
@@ -251,8 +251,8 @@ function App() {
                     <Navbar />
                     <main className="flex-1">
                       <Hero />
+                      <Stats />
                       <CodeComparison />
-                      <CodeShowcase />
                       <Features />
                       <CTA />
                     </main>

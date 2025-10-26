@@ -38,49 +38,89 @@ const CTA: React.FC = () => {
   };
 
   return (
-    <section 
-      ref={elementRef} // Dev Note: If your IDE is screaming about this line, dont worry about it, leave as is - Marshall
-      className="py-16 md:py-20 lg:py-24 xl:py-28 relative overflow-hidden">
+    <section
+      ref={elementRef}
+      className="py-16 md:py-20 lg:py-24 xl:py-32 relative overflow-hidden"
+      style={{ backgroundColor: "var(--bg-primary)" }}
+    >
+      {/* Grid background */}
+      <div className="absolute inset-0 bg-grid opacity-30"></div>
 
-      <div className="container relative">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 
-            className={`text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight ${
+      <div className="container relative z-10">
+        <div className="max-w-5xl mx-auto">
+          {/* Main CTA card */}
+          <div
+            className={`relative rounded-3xl p-12 md:p-16 backdrop-blur-sm border-2 ${
               getAnimationClasses(isVisible, 'fadeUpScale', 0)
             }`}
-            style={{ color: "var(--text-primary)" }}
+            style={{
+              backgroundColor: "var(--bg-secondary)",
+              borderColor: "rgba(224, 138, 44, 0.3)",
+              boxShadow: "0 25px 50px -12px rgba(224, 138, 44, 0.25)"
+            }}
           >
-            Ready to Build Something 
-            <span className="text-sb-amber"> Amazing?</span>
-          </h2>
-          
-          <p 
-            className={`text-lg md:text-xl mb-8 leading-relaxed ${
-              getAnimationClasses(isVisible, 'fadeUpScale', 100)
-            }`}
-            style={{ color: "var(--text-primary)" }}
-          >
-            Start your free project today!
-          </p>
-          
-          <div className={`flex justify-center ${
-            getAnimationClasses(isVisible, 'fadeUpScale', 200)
-          }`}>
-            {isSignedIn ? (
-              <button 
-                onClick={handleGetStarted}
-                disabled={!isLoaded}
-                className="btn btn-primary py-3 px-8 text-base disabled:opacity-50"
+            {/* Corner accents */}
+            <div className="absolute top-0 left-0 w-32 h-32">
+              <div className="absolute top-6 left-6 w-16 h-16 border-t-4 border-l-4 border-sb-amber rounded-tl-3xl"></div>
+            </div>
+            <div className="absolute bottom-0 right-0 w-32 h-32">
+              <div className="absolute bottom-6 right-6 w-16 h-16 border-b-4 border-r-4 border-sb-amber rounded-br-3xl"></div>
+            </div>
+
+            <div className="text-center">
+              <h2
+                className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight ${
+                  getAnimationClasses(isVisible, 'fadeUpScale', 150)
+                }`}
+                style={{ color: "var(--text-primary)" }}
               >
-                {!isLoaded ? 'Loading...' : 'Get Started Now'}
-              </button>
-            ) : (
-              <SignUpButton mode="modal">
-                <button className="btn btn-primary py-3 px-8 text-base">
-                  Get Started Now
-                </button>
-              </SignUpButton>
-            )}
+                Ready to Build Something{" "}
+                <span className="bg-gradient-to-r from-sb-amber to-amber-300 bg-clip-text text-transparent">
+                  Amazing?
+                </span>
+              </h2>
+
+              <p
+                className={`text-xl md:text-2xl mb-10 leading-relaxed max-w-3xl mx-auto ${
+                  getAnimationClasses(isVisible, 'fadeUpScale', 200)
+                }`}
+                style={{ color: "var(--text-secondary)" }}
+              >
+                Start your free project today. No credit card required.
+              </p>
+
+              <div className={`flex flex-col sm:flex-row justify-center gap-4 mb-8 ${
+                getAnimationClasses(isVisible, 'fadeUpScale', 250)
+              }`}>
+                {isSignedIn ? (
+                  <button
+                    onClick={handleGetStarted}
+                    disabled={!isLoaded}
+                    className="btn-hero-primary group disabled:opacity-50"
+                  >
+                    {!isLoaded ? 'Loading...' : 'Get Started Now'}
+                    <ArrowRight size={20} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                ) : (
+                  <SignUpButton mode="modal">
+                    <button className="btn-hero-primary group">
+                      Get Started Now
+                      <ArrowRight size={20} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                    </button>
+                  </SignUpButton>
+                )}
+              </div>
+
+              {/* License info */}
+              <p
+                className={`mt-8 text-sm ${
+                  getAnimationClasses(isVisible, 'fadeUp', 350)
+                }`}
+                style={{ color: "var(--text-secondary)", opacity: 0.7 }}
+              >
+                Open source • Apache 2.0 License
+              </p>
+            </div>
           </div>
         </div>
       </div>

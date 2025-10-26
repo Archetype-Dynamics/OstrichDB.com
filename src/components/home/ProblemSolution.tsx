@@ -66,22 +66,27 @@ const ProblemSolution: React.FC = () => {
   ];
 
   return (
-    <section 
+    <section
       ref={elementRef}
-      className="py-12 md:py-16 lg:py-20 xl:py-24" style={{ backgroundColor: "var(--bg-primary)" }}>
-      <div className="container">
-        <div className="text-center mb-16">
-          <h2 
-            className={`text-4xl md:text-5xl font-bold mb-4 ${
+      className="py-12 md:py-16 lg:py-20 xl:py-24 relative overflow-hidden"
+      style={{ backgroundColor: "var(--bg-primary)" }}
+    >
+      {/* Grid background */}
+      <div className="absolute inset-0 bg-grid opacity-30"></div>
+
+      <div className="container relative z-10">
+        <div className="text-center mb-20">
+          <h2
+            className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight ${
               getAnimationClasses(isVisible, 'fadeUp', 0)
             }`}
             style={{ color: "var(--text-primary)" }}
           >
             Why Most Databases <span className="text-sb-amber">Overcomplicate</span> Everything
           </h2>
-          
-          <p 
-            className={`text-lg mb-8 max-w-2xl mx-auto ${
+
+          <p
+            className={`text-lg md:text-xl mb-12 max-w-3xl mx-auto ${
               getAnimationClasses(isVisible, 'fadeUp', 100)
             }`}
             style={{ color: "var(--text-secondary)" }}
@@ -89,22 +94,22 @@ const ProblemSolution: React.FC = () => {
             MongoDB and Supabase create unnecessary complexity. OstrichDB gets back to basics with intuitive data organization.
           </p>
 
-          <div className={`flex flex-wrap justify-center gap-3 mb-8 ${
+          <div className={`flex flex-wrap justify-center gap-4 mb-8 ${
             getAnimationClasses(isVisible, 'fadeUp', 200)
           }`}>
             {problems.map((problem, index) => (
               <button
                 key={problem.id}
                 onClick={() => setActiveProblem(index)}
-                className={`px-4 py-2 rounded-lg transition-all font-medium ${
-                  activeProblem === index 
-                    ? 'bg-sb-amber text-black' 
-                    : 'hover:bg-opacity-50'
+                className={`px-6 py-3 rounded-xl transition-all duration-300 font-semibold text-base ${
+                  activeProblem === index
+                    ? 'bg-gradient-to-r from-sb-amber to-amber-500 text-white shadow-lg scale-105'
+                    : 'hover:scale-105 border-2'
                 }`}
                 style={{
                   backgroundColor: activeProblem === index ? undefined : "var(--bg-secondary)",
                   color: activeProblem === index ? undefined : "var(--text-secondary)",
-                  borderColor: "var(--border-color)"
+                  borderColor: activeProblem === index ? undefined : "var(--border-color)"
                 }}
               >
                 {problem.title}
@@ -113,46 +118,47 @@ const ProblemSolution: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8 items-center">
+        <div className="grid lg:grid-cols-3 gap-10 items-center max-w-7xl mx-auto">
           {/* Problems Side - Slide from Left */}
           <div className={`space-y-6 ${
             getAnimationClasses(isVisible, 'slideLeft', 300)
           }`}>
-            <div className="text-center lg:text-right">
-              <h3 className="text-2xl font-bold mb-4" style={{ color: "#ff6b6b" }}>
+            <div className="text-center lg:text-right mb-8">
+              <h3 className="text-3xl font-bold mb-2 bg-gradient-to-r from-red-500 to-red-400 bg-clip-text text-transparent">
                 Common Problems
               </h3>
+              <div className="h-1 w-24 bg-gradient-to-r from-red-500 to-red-400 ml-auto rounded-full"></div>
             </div>
 
-            <div 
-              className="p-6 rounded-lg border-l-4 transition-all duration-300"
-              style={{ 
-                backgroundColor: "rgba(255, 107, 107, 0.1)",
-                borderLeftColor: "#ff6b6b"
+            <div
+              className="p-8 rounded-2xl border-2 transition-all duration-500 backdrop-blur-sm hover:scale-105 hover:shadow-2xl"
+              style={{
+                backgroundColor: "rgba(255, 107, 107, 0.05)",
+                borderColor: "rgba(255, 107, 107, 0.3)"
               }}
             >
-              <div className="flex items-center gap-3 mb-3 lg:justify-end">
-                <span className="text-2xl">😵‍💫</span>
-                <h4 className="text-xl font-semibold" style={{ color: "#ff8a8a" }}>
+              <div className="flex items-center gap-4 mb-4 lg:justify-end">
+                <h4 className="text-2xl font-bold" style={{ color: "#ff6b6b" }}>
                   {problems[activeProblem].problemTitle}
                 </h4>
               </div>
-              
-              <p 
-                className="mb-4 lg:text-right"
+
+              <p
+                className="mb-6 lg:text-right text-lg leading-relaxed"
                 style={{ color: "var(--text-secondary)" }}
               >
                 {problems[activeProblem].problemDescription}
               </p>
-              
+
               <div className="flex flex-wrap gap-2 lg:justify-end">
                 {problems[activeProblem].problemTags.map((tag, index) => (
-                  <span 
+                  <span
                     key={index}
-                    className="px-3 py-1 rounded-full text-sm font-medium"
-                    style={{ 
+                    className="px-4 py-2 rounded-full text-sm font-semibold backdrop-blur-sm"
+                    style={{
                       backgroundColor: "rgba(255, 107, 107, 0.2)",
-                      color: "#ff8a8a"
+                      color: "#ff8a8a",
+                      border: "1px solid rgba(255, 107, 107, 0.3)"
                     }}
                   >
                     {tag}
@@ -167,18 +173,19 @@ const ProblemSolution: React.FC = () => {
             getAnimationClasses(isVisible, 'fadeUp', 400)
           }`}>
             <div className="relative">
-              <div 
-                className="w-1 h-32 lg:w-32 lg:h-1"
-                style={{ 
-                  background: "linear-gradient(to right, #666, #e08a2c, #666)"
+              <div
+                className="w-1 h-40 lg:w-40 lg:h-1 rounded-full"
+                style={{
+                  background: "linear-gradient(to right, rgba(255, 107, 107, 0.5), #e08a2c, rgba(255, 107, 107, 0.5))"
                 }}
               ></div>
-              <div 
-                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full flex items-center justify-center font-bold text-lg border-2"
-                style={{ 
+              <div
+                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full flex items-center justify-center font-bold text-xl border-4 shadow-2xl backdrop-blur-sm"
+                style={{
                   backgroundColor: "var(--bg-primary)",
                   borderColor: "#e08a2c",
-                  color: "#e08a2c"
+                  color: "#e08a2c",
+                  boxShadow: "0 0 30px rgba(224, 138, 44, 0.3)"
                 }}
               >
                 VS
@@ -190,39 +197,41 @@ const ProblemSolution: React.FC = () => {
           <div className={`space-y-6 ${
             getAnimationClasses(isVisible, 'slideRight', 500)
           }`}>
-            <div className="text-center lg:text-left">
-              <h3 className="text-2xl font-bold mb-4 text-sb-amber">
+            <div className="text-center lg:text-left mb-8">
+              <h3 className="text-3xl font-bold mb-2 bg-gradient-to-r from-sb-amber to-amber-400 bg-clip-text text-transparent">
                 OstrichDB Solutions
               </h3>
+              <div className="h-1 w-24 bg-gradient-to-r from-sb-amber to-amber-400 rounded-full"></div>
             </div>
 
-            <div 
-              className="p-6 rounded-lg border-l-4 transition-all duration-300"
-              style={{ 
-                backgroundColor: "rgba(224, 138, 44, 0.1)",
-                borderLeftColor: "#e08a2c"
+            <div
+              className="p-8 rounded-2xl border-2 transition-all duration-500 backdrop-blur-sm hover:scale-105 hover:shadow-2xl"
+              style={{
+                backgroundColor: "rgba(224, 138, 44, 0.05)",
+                borderColor: "rgba(224, 138, 44, 0.3)"
               }}
             >
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-2xl">{problems[activeProblem].solutionIcon}</span>
-                <h4 className="text-xl font-semibold text-sb-amber">
+              <div className="flex items-center gap-4 mb-4">
+                <h4 className="text-2xl font-bold text-sb-amber">
                   {problems[activeProblem].solutionTitle}
                 </h4>
               </div>
-              
-              <p 
-                className="mb-4"
+
+              <p
+                className="mb-6 text-lg leading-relaxed"
                 style={{ color: "var(--text-secondary)" }}
               >
                 {problems[activeProblem].solutionDescription}
               </p>
-              
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-lg">
+
+              <div className="flex items-center gap-3">
+                <span className="font-bold text-xl">
                   <span style={{ color: "var(--text-primary)" }}>Ostrich</span>
                   <span className="text-sb-amber">DB</span>
                 </span>
-                <span className="text-green-500 text-sm">✓ Just works</span>
+                <span className="px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-sm font-semibold border border-green-500/30">
+                  ✓ Just works
+                </span>
               </div>
             </div>
           </div>

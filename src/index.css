@@ -77,6 +77,25 @@ body {
     border-color: var(--border-color);
   }
 
+  /* Enhanced Hero Buttons */
+  .btn-hero-primary {
+    @apply px-8 py-4 text-lg font-semibold rounded-xl bg-gradient-to-r from-sb-amber to-amber-500 text-white shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 inline-flex items-center justify-center;
+    box-shadow: 0 10px 40px rgba(224, 138, 44, 0.3);
+  }
+
+  .btn-hero-primary:hover {
+    box-shadow: 0 15px 50px rgba(224, 138, 44, 0.5);
+  }
+
+  .btn-hero-secondary {
+    @apply px-8 py-4 text-lg font-semibold rounded-xl border-2 border-sb-amber text-sb-amber backdrop-blur-sm hover:bg-sb-amber hover:text-white transition-all duration-300 inline-flex items-center justify-center;
+    background: rgba(224, 138, 44, 0.05);
+  }
+
+  .btn-hero-secondary:hover {
+    box-shadow: 0 10px 40px rgba(224, 138, 44, 0.2);
+  }
+
   .gradient-text {
     @apply bg-clip-text text-sb-amber;
   }
@@ -141,6 +160,13 @@ body {
 .hero-gradient {
   background: radial-gradient(circle at 50% -20%,
       rgba(234, 227, 209, 0.15),
+      transparent 70%);
+}
+
+.hero-gradient-enhanced {
+  background: radial-gradient(ellipse at top,
+      rgba(224, 138, 44, 0.15) 0%,
+      rgba(224, 138, 44, 0.05) 30%,
       transparent 70%);
 }
 
@@ -222,6 +248,50 @@ html {
 * {
   transition: background-color 0.3s ease, color 0.3s ease,
     border-color 0.3s ease;
+}
+
+/* New animations for enhanced design */
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes pulse-slower {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes bounce-slow {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 8s ease-in-out infinite;
+}
+
+.animate-pulse-slower {
+  animation: pulse-slower 10s ease-in-out infinite;
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 2s ease-in-out infinite;
 }
 
 /* Reduced motion preference */
